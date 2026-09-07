@@ -11,10 +11,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Level_01_Tutorial.unity
     guid: 441ad395c1b287148bc3a4351f13ec20
+  - enabled: 1
+    path: Assets/Scenes/Level_02_ColoredSwitches.unity
+    guid: 04a7b41d5a56a4c41a200cc243386ba1
   - enabled: 0
     path: Assets/Scenes/Level_02.unity
     guid: 47dd9cde988fb284186de129ad84266c
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Level_03_Letters.unity
     guid: 963219ce93c48ad459be8c4cd4d684ab
   m_configObjects:
