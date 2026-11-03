@@ -9125,6 +9125,7 @@ GameObject:
   - component: {fileID: 2100000101}
   - component: {fileID: 2100000102}
   - component: {fileID: 2100000103}
+  - component: {fileID: 2100000104}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -10635,6 +10636,96 @@ MonoBehaviour:
   scoreAnimationSeconds: 1.25
   partialFeedback: "כל הכבוד!\nננסה שוב ביחד?"
   fullFeedback: "איזה צוות!\nהצלחנו ביחד!"
+--- !u!114 &2100000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f77cd8f9fcbc475e8a567760b34a3dbf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  startAutomatically: 1
+  repeatOnEveryVisit: 0
+  steps:
+  - id: left_player_1
+    phase: 0
+    player: {fileID: 2034102728}
+    action: 0
+    control: {fileID: 845730956}
+    plate: {fileID: 0}
+    bridge: {fileID: 0}
+    moveDistance: 0.65
+    direction: -1
+  - id: left_player_2
+    phase: 0
+    player: {fileID: 1617921348}
+    action: 0
+    control: {fileID: 802712476}
+    plate: {fileID: 0}
+    bridge: {fileID: 0}
+    moveDistance: 0.65
+    direction: -1
+  - id: right_player_1
+    phase: 1
+    player: {fileID: 2034102728}
+    action: 0
+    control: {fileID: 2052844945}
+    plate: {fileID: 0}
+    bridge: {fileID: 0}
+    moveDistance: 0.65
+    direction: 1
+  - id: right_player_2
+    phase: 1
+    player: {fileID: 1617921348}
+    action: 0
+    control: {fileID: 995577172}
+    plate: {fileID: 0}
+    bridge: {fileID: 0}
+    moveDistance: 0.65
+    direction: 1
+  - id: jump_player_1
+    phase: 2
+    player: {fileID: 2034102728}
+    action: 1
+    control: {fileID: 1328960149}
+    plate: {fileID: 0}
+    bridge: {fileID: 0}
+    moveDistance: 0.65
+    direction: 1
+  - id: jump_player_2
+    phase: 2
+    player: {fileID: 1617921348}
+    action: 1
+    control: {fileID: 393342016}
+    plate: {fileID: 0}
+    bridge: {fileID: 0}
+    moveDistance: 0.65
+    direction: 1
+  - id: blue_holds_plate
+    phase: 3
+    player: {fileID: 2034102728}
+    action: 2
+    control: {fileID: 0}
+    plate: {fileID: 1341588837}
+    bridge: {fileID: 0}
+    moveDistance: 0.65
+    direction: 1
+  - id: red_crosses_with_blue
+    phase: 4
+    player: {fileID: 2034102728}
+    action: 3
+    control: {fileID: 0}
+    plate: {fileID: 1341588837}
+    bridge: {fileID: 1818082502}
+    moveDistance: 0.65
+    direction: 1
+  positiveSound: {fileID: 8300000, guid: 1c2813c9063eb9d438842d837404a913, type: 3}
+  feedbackVolume: 0.18
+  repeatHandAfterSeconds: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

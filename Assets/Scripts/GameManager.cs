@@ -43,6 +43,7 @@ public sealed class GameManager : MonoBehaviour
         tracker.Milestone += OnMilestone;
         hints.Initialize(this);
         ui.Initialize(this, winSequence);
+        GetComponent<TutorialManager>()?.Initialize(this);
     }
 
     private void Update()
@@ -65,6 +66,8 @@ public sealed class GameManager : MonoBehaviour
 
         if (levelCompleted || transitionPending) return;
         var progress = tracker.Progress;
+        var onboarding=GetComponent<TutorialManager>();
+        if(onboarding&&onboarding.IsActive&&!onboarding.ControlsLearned)return;
         if (progress.GoalCount < 1) return;
         if (progress.GoalCount == 2 || Time.unscaledTime - firstGoalTime >= partialCompletionGraceSeconds)
             CompleteLevel();
@@ -86,6 +89,8 @@ public sealed class GameManager : MonoBehaviour
     {
         if (levelCompleted || transitionPending || tracker == null) return;
         var progress = tracker.Progress;
+        var onboarding=GetComponent<TutorialManager>();
+        if(onboarding&&onboarding.IsActive&&!onboarding.ControlsLearned)return;
         if (progress.GoalCount < 1) return;
         if (progress.GoalCount < 2 && Time.unscaledTime - firstGoalTime < partialCompletionGraceSeconds) return;
         FinishLevel();
@@ -136,7 +141,7 @@ public sealed class GameManager : MonoBehaviour
         if (levelCompleted || transitionPending) return;
         Log("player_fell", playerId, "gameplay_collider");
         // Preserve an earned partial finish if the other child falls during the grace period.
-        if (tracker.Progress.GoalCount >= 1)
+        if (tracker.Progress.GoalCount >= 1 && (!GetComponent<TutorialManager>() || !GetComponent<TutorialManager>().IsActive || GetComponent<TutorialManager>().ControlsLearned))
         {
             FinishLevel();
             return;
@@ -166,6 +171,7 @@ public sealed class GameManager : MonoBehaviour
         if (!levelCompleted || transitionPending) return;
         transitionPending = true;
         PlaytestData.Store.StartNewPair();
+        TutorialSession.Reset();
         SceneManager.LoadScene(0);
     }
 
@@ -176,11 +182,12 @@ public sealed class GameManager : MonoBehaviour
         Debug.LogError("[Playtest] " + message);
     }
 
-    public void Log(string type, int playerId, string attribution, string detail = "", string outcome = "")
+    public void Log(string type, int playerId, string attribution, string detail = "", string outcome = "",
+        string tutorialRunId = "", string tutorialAction = "", float tutorialElapsedSeconds = -1f, float tutorialPhaseSeconds = -1f)
     {
         var progress = tracker?.Progress;
         PlaytestData.Store.Record(attempt, type, playerId, Score, progress?.EarnedUnits ?? 0,
-            progress?.TotalUnits ?? 0, attribution, detail, outcome);
+            progress?.TotalUnits ?? 0, attribution, detail, outcome,tutorialRunId,tutorialAction,tutorialElapsedSeconds,tutorialPhaseSeconds);
     }
 
     private void FinishAttempt(string outcome)

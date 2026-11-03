@@ -10,11 +10,11 @@ public sealed class CooperationHints : MonoBehaviour
     GameManager manager; PlaytestUI ui; PlayerController[] players; PressurePlate[] plates; BridgeController[] bridges;
     float lastActivity; readonly float[] cooldown=new float[3]; Vector3[] lastPositions;
     PressurePlate targetPlate, heldPlate; BridgeController targetBridge; int helperId;
-    bool showing; int goalCount;
+    bool showing; int goalCount;TutorialManager tutorial;
     public bool IsStuck=>Time.unscaledTime-lastActivity>=stuckAfterSeconds;
     public void Initialize(GameManager owner)
     {
-        manager=owner;ui=GetComponent<PlaytestUI>();players=FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+        tutorial=GetComponent<TutorialManager>();manager=owner;ui=GetComponent<PlaytestUI>();players=FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         plates=FindObjectsByType<PressurePlate>(FindObjectsSortMode.None);bridges=FindObjectsByType<BridgeController>(FindObjectsSortMode.None);
         lastPositions=new Vector3[players.Length];for(int i=0;i<players.Length;i++)lastPositions[i]=players[i].transform.position;
         NotifyProgress();
@@ -23,7 +23,7 @@ public sealed class CooperationHints : MonoBehaviour
     public void Hide(){showing=false;if(ui)ui.HideHint();}
     void Update()
     {
-        if(!manager||manager.LevelCompleted||manager.IsTransitioning)return;
+        if(!manager||manager.LevelCompleted||manager.IsTransitioning||manager.Tracker?.Progress==null||(tutorial&&tutorial.IsActive))return;
         bool moved=false;
         for(int i=0;i<players.Length;i++)if(players[i]&&Vector3.Distance(lastPositions[i],players[i].transform.position)>.12f){moved=true;lastPositions[i]=players[i].transform.position;}
         if(moved)lastActivity=Time.unscaledTime;
@@ -38,6 +38,8 @@ public sealed class CooperationHints : MonoBehaviour
     {
         if(!manager||manager.LevelCompleted||manager.IsTransitioning||!CooperationProgress.ValidPlayer(playerId)||Time.unscaledTime<cooldown[playerId])return;
         cooldown[playerId]=Time.unscaledTime+requestCooldownSeconds;
+        if(tutorial&&tutorial.IsActive)
+        {tutorial.RequestHint(playerId,attribution);return;}
         ShowPlan();manager.Log("hint_requested",playerId,attribution,PlanId());lastActivity=Time.unscaledTime;
     }
     string PlanId()=>targetPlate?"hold_plate:"+CooperationTracker.ObjectId(targetPlate.transform):targetBridge?"cross_bridge:"+CooperationTracker.ObjectId(targetBridge.transform):"join_star";

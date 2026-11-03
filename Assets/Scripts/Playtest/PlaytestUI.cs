@@ -17,13 +17,18 @@ public sealed class PlaytestUI : MonoBehaviour
     GameManager manager;WinSequence celebration;RectTransform hud,panel,card,fill;
     CanvasGroup panelGroup;Sprite rounded;Image[] avatars=new Image[2];RectTransform[] stars=new RectTransform[3];
     RectTransform researcher;TMP_Text researcherStatus;string storageError;
-    Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> rings=new(),arrows=new();
+    Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> rings=new(),arrows=new(),hands=new();
+    readonly Dictionary<int,GuidanceTiming> guideClocks=new();readonly Dictionary<int,float> handStarts=new();
+    string guidanceContext;float dashboardNextUpdate;PlayerController[] guidePlayers;Vector3[] guidePositions;
+    public event System.Action<int> DemonstrationRepeated;
     public bool ResultsVisible{get;private set;}
     public struct HintSpot
     {
-        public Vector3 Position;public int Player;public string Button;
+        public Vector3 Position;public int Player;public string Button;public Transform WorldTarget;public RectTransform ControlRect;public bool Tap;
+        public static HintSpot Follow(Transform target,int player)=>new HintSpot{WorldTarget=target,Player=player};
+        public static HintSpot ExactControl(RectTransform target,int player,bool tap=false)=>new HintSpot{ControlRect=target,Player=player,Tap=tap};
         public static HintSpot World(Vector3 position,int player)=>new HintSpot{Position=position,Player=player};
-        public static HintSpot Control(int player,string button)=>new HintSpot{Player=player,Button=button};
+        public static HintSpot Control(int player,string button)=>new HintSpot{Player=player,Button=button,Tap=button=="Btn_Jump"};
     }
     public void Initialize(GameManager owner,WinSequence sequence)
     {
@@ -56,10 +61,11 @@ public sealed class PlaytestUI : MonoBehaviour
         Button("Blue Replay",card,new Vector2(.10f,.06f),new Vector2(.34f,.29f),blue,VisualIcon.Shape.Replay,()=>manager.RequestRetry(1));
         Button("Next Level",card,new Vector2(.39f,.06f),new Vector2(.61f,.29f),new Color(.22f,.56f,.29f),VisualIcon.Shape.Arrow,manager.Continue);
         Button("Red Replay",card,new Vector2(.66f,.06f),new Vector2(.90f,.29f),red,VisualIcon.Shape.Replay,()=>manager.RequestRetry(2));
-        researcher=Box("Researcher tools (F8)",panel,new Vector2(.14f,.01f),new Vector2(.86f,.16f),Color.white);
-        AdultButton("Export CSV",researcher,new Vector2(.02f,.5f),new Vector2(.48f,.95f),()=>{var path=PlaytestData.Store.ExportCsv();researcherStatus.text=path??PlaytestData.Store.LastError;});
-        AdultButton("New anonymous pair",researcher,new Vector2(.52f,.5f),new Vector2(.98f,.95f),manager.StartNewPair);
-        researcherStatus=AdultText(researcher,"",new Vector2(.02f,.02f),new Vector2(.98f,.48f));researcher.gameObject.SetActive(false);
+        researcher=Box("Researcher tools (F8)",canvas.transform,new Vector2(.08f,.06f),new Vector2(.92f,.74f),Color.white);
+        AdultButton("Export CSV",researcher,new Vector2(.02f,.90f),new Vector2(.48f,.98f),()=>{var path=PlaytestData.Store.ExportCsv();researcherStatus.text=path??PlaytestData.Store.LastError;});
+        AdultButton("New anonymous pair",researcher,new Vector2(.52f,.90f),new Vector2(.98f,.98f),manager.StartNewPair);
+        researcherStatus=AdultText(researcher,"",new Vector2(.02f,.02f),new Vector2(.98f,.87f));researcher.gameObject.SetActive(false);
+        var developerCanvas=researcher.gameObject.AddComponent<Canvas>();developerCanvas.overrideSorting=true;developerCanvas.sortingOrder=500;researcher.gameObject.AddComponent<GraphicRaycaster>();
         card.gameObject.SetActive(false);panel.SetAsLastSibling();
         var overlay=new GameObject("Visual Hint Overlay",typeof(Canvas),typeof(CanvasScaler));overlay.transform.SetParent(transform,false);
         spotlightCanvas=overlay.GetComponent<Canvas>();spotlightCanvas.renderMode=RenderMode.ScreenSpaceOverlay;spotlightCanvas.sortingOrder=200;
@@ -70,18 +76,45 @@ public sealed class PlaytestUI : MonoBehaviour
     void Update()
     {
         if(!manager)return;
-        if(Keyboard.current!=null&&Keyboard.current.f8Key.wasPressedThisFrame&&ResultsVisible){researcher.gameObject.SetActive(!researcher.gameObject.activeSelf);researcherStatus.text=storageError??PlaytestData.Store.LastError??"Local anonymous playtest data";}
-        if(spotlightCanvas&&spotlightCanvas.gameObject.activeSelf)UpdateSpots();
+        if(Keyboard.current!=null&&Keyboard.current.f8Key.wasPressedThisFrame ){researcher.gameObject.SetActive(!researcher.gameObject.activeSelf);dashboardNextUpdate=0;}
+        if(researcher.gameObject.activeSelf&&Time.unscaledTime>=dashboardNextUpdate){dashboardNextUpdate=Time.unscaledTime+.25f;researcherStatus.text=TutorialDashboard.Format(PlaytestData.Store)+(storageError==null?"":"\n"+storageError);}
+        if(spotlightCanvas&&spotlightCanvas.gameObject.activeSelf&&guidePlayers!=null)
+        {
+            for(int i=0;i<guidePlayers.Length;i++)if(guidePlayers[i]&&IsGuidedPlayer(guidePlayers[i].PlayerId)&&Vector3.Distance(guidePositions[i],guidePlayers[i].transform.position)>.05f)
+            {if(guideClocks.TryGetValue(guidePlayers[i].PlayerId,out var clock))clock.NotifyActivity(Time.unscaledTime);guidePositions[i]=guidePlayers[i].transform.position;}
+            foreach(var pair in guideClocks)if(pair.Value.ShouldRepeat(Time.unscaledTime)){RepeatHandDemo(pair.Key);DemonstrationRepeated?.Invoke(pair.Key);}
+            UpdateSpots();
+        }
     }
-    public void ShowVisualHint(List<HintSpot> targets)
+    public void ShowVisualHint(List<HintSpot> targets,float repeatAfterSeconds=5f,string contextKey=null)
     {
-        HideHint();spots.AddRange(targets);spotlightCanvas.gameObject.SetActive(true);
+        bool preserve=contextKey!=null&&contextKey==guidanceContext;
+        var previousClocks=preserve?new Dictionary<int,GuidanceTiming>(guideClocks):null;
+        var previousStarts=preserve?new Dictionary<int,float>(handStarts):null;
+        HideHint();guidanceContext=contextKey;spots.AddRange(targets);spotlightCanvas.gameObject.SetActive(true);
+        foreach(var target in targets)if(!string.IsNullOrEmpty(target.Button)||target.ControlRect)
+        {
+            guideClocks[target.Player]=preserve&&previousClocks.ContainsKey(target.Player)?previousClocks[target.Player]:new GuidanceTiming(Time.unscaledTime,repeatAfterSeconds);
+            handStarts[target.Player]=preserve&&previousStarts.ContainsKey(target.Player)?previousStarts[target.Player]:Time.unscaledTime;
+        }
+        guidePlayers=FindObjectsByType<PlayerController>(FindObjectsSortMode.None);guidePositions=new Vector3[guidePlayers.Length];
+        for(int i=0;i<guidePlayers.Length;i++)guidePositions[i]=guidePlayers[i].transform.position;
         foreach(var target in spots)
         {
             var ring=Icon("Pulse highlight",spotlightCanvas.transform,Vector2.zero,Vector2.zero,VisualIcon.Shape.Ring,target.Player==1?blue:red);rings.Add(ring);
             var arrow=Icon("Look here",spotlightCanvas.transform,Vector2.zero,Vector2.zero,VisualIcon.Shape.Arrow,new Color(1,.86f,.20f));arrow.GetComponent<VisualIcon>().Rotation=-90;arrows.Add(arrow);
+            RectTransform hand=null;
+            if(!string.IsNullOrEmpty(target.Button)||target.ControlRect)
+                hand=Icon("Demonstrating hand",spotlightCanvas.transform,Vector2.zero,Vector2.zero,VisualIcon.Shape.Hand,Color.white);
+            hands.Add(hand);
         }
         UpdateSpots();
+    }
+    bool IsGuidedPlayer(int playerId)
+    {foreach(var spot in spots)if(spot.Player==playerId&&(!string.IsNullOrEmpty(spot.Button)||spot.ControlRect))return true;return false;}
+    public bool RepeatHandDemo(int playerId=0)
+    {
+        bool replayed=false;foreach(var pair in guideClocks)if(playerId==0||pair.Key==playerId){handStarts[pair.Key]=Time.unscaledTime;pair.Value.NotifyDemonstration(Time.unscaledTime);replayed=true;}return replayed;
     }
     void UpdateSpots()
     {
@@ -89,28 +122,42 @@ public sealed class PlaytestUI : MonoBehaviour
         for(int i=0;i<spots.Count;i++)
         {
             var target=spots[i];Rect rect;
-            if(!string.IsNullOrEmpty(target.Button))
+            if(!string.IsNullOrEmpty(target.Button)||target.ControlRect)
             {
-                var control=canvas.transform.Find((target.Player==1?"P1_Controls/":"P2_Controls/")+target.Button) as RectTransform;
-                if(!control){rings[i].gameObject.SetActive(false);arrows[i].gameObject.SetActive(false);continue;}
+                var control=target.ControlRect?target.ControlRect:canvas.transform.Find((target.Player==1?"P1_Controls/":"P2_Controls/")+target.Button) as RectTransform;
+                if(!control){rings[i].gameObject.SetActive(false);arrows[i].gameObject.SetActive(false);if(hands[i])hands[i].gameObject.SetActive(false);continue;}
                 var corners=new Vector3[4];control.GetWorldCorners(corners);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(root,RectTransformUtility.WorldToScreenPoint(canvas.renderMode==RenderMode.ScreenSpaceOverlay?null:canvas.worldCamera,corners[0]),null,out var a);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(root,RectTransformUtility.WorldToScreenPoint(canvas.renderMode==RenderMode.ScreenSpaceOverlay?null:canvas.worldCamera,corners[2]),null,out var b);rect=UnityEngine.Rect.MinMaxRect(a.x-16,a.y-16,b.x+16,b.y+16);
             }
             else
             {
-                if(!camera)continue;var screen=camera.WorldToScreenPoint(target.Position);RectTransformUtility.ScreenPointToLocalPointInRectangle(root,screen,null,out var point);rect=new Rect(point-new Vector2(85,70),new Vector2(170,140));
+                if(!camera)continue;var screen=camera.WorldToScreenPoint(target.WorldTarget?target.WorldTarget.position:target.Position);RectTransformUtility.ScreenPointToLocalPointInRectangle(root,screen,null,out var point);rect=new Rect(point-new Vector2(85,70),new Vector2(170,140));
             }
             shade.Holes.Add(rect);
-            rings[i].anchorMin=rings[i].anchorMax=Vector2.one*.5f;rings[i].anchoredPosition=rect.center;rings[i].sizeDelta=new Vector2(Mathf.Max(rect.width,rect.height),Mathf.Max(rect.width,rect.height));rings[i].localScale=Vector3.one*(1f+.05f*Mathf.Sin(Time.unscaledTime*3));
-            arrows[i].anchorMin=arrows[i].anchorMax=Vector2.one*.5f;arrows[i].anchoredPosition=new Vector2(rect.center.x,rect.yMax+55+9*Mathf.Sin(Time.unscaledTime*3));arrows[i].sizeDelta=new Vector2(95,95);
+            float emphasis=guideClocks.TryGetValue(target.Player,out var timing)?timing.Emphasis(Time.unscaledTime):0;
+            if(hands[i])
+            {
+                float elapsed=Time.unscaledTime-(handStarts.TryGetValue(target.Player,out float started)?started:Time.unscaledTime);hands[i].gameObject.SetActive(elapsed<1.8f);
+                // The fingertip lands at the actual target center; movement holds longer than a jump tap.
+                float phase=Mathf.Clamp01(elapsed/.55f);float press=Mathf.Sin(phase*Mathf.PI*.5f);
+                float release=target.Tap?.9f:1.4f;
+                float lift=elapsed>release?Mathf.Clamp01((elapsed-release)/.4f)*55:0;
+                hands[i].anchorMin=hands[i].anchorMax=Vector2.one*.5f;
+                hands[i].anchoredPosition=rect.center+new Vector2(22,-52-(1-press)*65-lift);
+                hands[i].sizeDelta=new Vector2(130,150)*(1+.12f*emphasis);
+            }
+            rings[i].anchorMin=rings[i].anchorMax=Vector2.one*.5f;rings[i].anchoredPosition=rect.center;rings[i].sizeDelta=new Vector2(Mathf.Max(rect.width,rect.height),Mathf.Max(rect.width,rect.height));rings[i].localScale=Vector3.one*(1f+(.05f+.025f*emphasis)*Mathf.Sin(Time.unscaledTime*3));
+            arrows[i].anchorMin=arrows[i].anchorMax=Vector2.one*.5f;arrows[i].anchoredPosition=new Vector2(rect.center.x,rect.yMax+55+9*Mathf.Sin(Time.unscaledTime*3));arrows[i].sizeDelta=new Vector2(95,95)*(1+.12f*emphasis);
         }
+        float strongest=0;foreach(var clock in guideClocks.Values)strongest=Mathf.Max(strongest,clock.Emphasis(Time.unscaledTime));
+        shade.color=new Color(0,0,0,Mathf.Min(.76f,hintDimOpacity+strongest*.04f));
         shade.Refresh();
     }
     public void HideHint()
     {
         if(spotlightCanvas)spotlightCanvas.gameObject.SetActive(false);
-        foreach(var ring in rings)if(ring)Destroy(ring.gameObject);foreach(var arrow in arrows)if(arrow)Destroy(arrow.gameObject);rings.Clear();arrows.Clear();spots.Clear();
+        foreach(var ring in rings)if(ring)Destroy(ring.gameObject);foreach(var arrow in arrows)if(arrow)Destroy(arrow.gameObject);foreach(var hand in hands)if(hand)Destroy(hand.gameObject);rings.Clear();arrows.Clear();hands.Clear();spots.Clear();guideClocks.Clear();handStarts.Clear();guidanceContext=null;
     }
     public void ShowResults(bool full,float score,float? previous,float? best)
     {

@@ -19,6 +19,11 @@ public sealed class PlayerController : MonoBehaviour
     public int PlayerId => isPlayerTwo ? 2 : 1;
     public Collider2D BodyCollider => col;
     public bool IsGrounded => col != null && col.IsTouchingLayers(groundLayer);
+    public int SuccessfulJumpCount { get; private set; }
+    public float MoveIntent => moveInput;
+    public float SuccessfulLeftDistance { get; private set; }
+    public float SuccessfulRightDistance { get; private set; }
+    private float previousPhysicsX, lastAppliedMove;
 
     public void SetInputLocked(bool locked)
     {
@@ -35,6 +40,7 @@ public sealed class PlayerController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        previousPhysicsX = rb.position.x;
         col = GetComponent<Collider2D>();
         if (!view) view = GetComponentInChildren<PlayerView>();
 
@@ -64,8 +70,13 @@ public sealed class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Observe the result of the previous physics step, not a button press or an assumed move.
+        float moved=rb.position.x-previousPhysicsX;previousPhysicsX=rb.position.x;
+        if(lastAppliedMove<0&&moved<0)SuccessfulLeftDistance-=moved;
+        if(lastAppliedMove>0&&moved>0)SuccessfulRightDistance+=moved;
+        lastAppliedMove=!inputLocked&&col.IsTouchingLayers(groundLayer)?moveInput:0;
         if (!inputLocked)
-            rb.linearVelocity = new Vector2(col.IsTouchingLayers(groundLayer) ? moveInput * moveSpeed : 0f, rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(lastAppliedMove * moveSpeed, rb.linearVelocity.y);
     }
 
     private void ReadInput()
@@ -102,6 +113,9 @@ public sealed class PlayerController : MonoBehaviour
     public void Jump()
     {
         if (!inputLocked && col != null && col.IsTouchingLayers(groundLayer))
+        {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            SuccessfulJumpCount++;
+        }
     }
 }

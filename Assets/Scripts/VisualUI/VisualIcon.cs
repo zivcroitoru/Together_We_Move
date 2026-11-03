@@ -5,7 +5,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CanvasRenderer))]
 public sealed class VisualIcon : MaskableGraphic
 {
-    public enum Shape { Arrow, Replay, Bulb, Star, Smile, Ring }
+    public enum Shape { Arrow, Replay, Bulb, Star, Smile, Ring, Hand }
     public Shape shape;
     public float Rotation;
     protected override void OnPopulateMesh(VertexHelper mesh)
@@ -13,6 +13,15 @@ public sealed class VisualIcon : MaskableGraphic
         mesh.Clear();
         switch (shape)
         {
+            case Shape.Hand:
+                // Pointing index, rounded palm, curled fingers and thumb.
+                Line(mesh,new Vector2(-.06f,-.12f),new Vector2(-.06f,.34f),.12f);
+                Disc(mesh,new Vector2(-.06f,.34f),.06f);
+                Triangle(mesh,new Vector2(-.12f,-.30f),new Vector2(.24f,-.30f),new Vector2(.25f,.02f));
+                Triangle(mesh,new Vector2(-.12f,-.30f),new Vector2(.25f,.02f),new Vector2(-.12f,.06f));
+                for(int i=0;i<3;i++){float x=.05f+i*.07f;Line(mesh,new Vector2(x,-.13f),new Vector2(x,.06f-i*.025f),.085f);Disc(mesh,new Vector2(x,.06f-i*.025f),.043f);}
+                Line(mesh,new Vector2(-.07f,-.21f),new Vector2(-.25f,-.05f),.12f);Disc(mesh,new Vector2(-.25f,-.05f),.06f);
+                break;
             case Shape.Arrow:
                 Line(mesh,new Vector2(-.36f,0),new Vector2(.32f,0),.13f);
                 Triangle(mesh,new Vector2(.42f,0),new Vector2(.07f,.34f),new Vector2(.07f,-.34f));break;
