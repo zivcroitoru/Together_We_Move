@@ -21,6 +21,13 @@ public sealed class PlayerDeathController : MonoBehaviour
     {
         isDead = true;
 
+        var manager = FindFirstObjectByType<GameManager>();
+        if (manager != null)
+        {
+            manager.RestartAfterFall(GetComponent<PlayerController>()?.PlayerId ?? 0);
+            return;
+        }
+
         Debug.Log("[PLAYER] Fell out of level - restarting scene.");
 
         SceneManager.LoadScene(

@@ -9821,6 +9821,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1828736517}
   - component: {fileID: 1828736516}
+  - component: {fileID: 2100000101}
+  - component: {fileID: 2100000102}
+  - component: {fileID: 2100000103}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -9841,7 +9844,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   winSequence: {fileID: 666563778}
-  transitionDelay: 2.5
+  transitionDelay: 0.5
+  partialCompletionGraceSeconds: 6
 --- !u!4 &1828736517
 Transform:
   m_ObjectHideFlags: 0
@@ -10991,6 +10995,118 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 6.535122, y: 6.775651}
   m_EdgeRadius: 0
+--- !u!114 &2100000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b37d797c3ef2478681fa9dbb68a4ca0b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CooperationTracker
+  bridges:
+  - {fileID: 1818082502}
+  - {fileID: 520447737}
+  - {fileID: 910906128}
+  players:
+  - {fileID: 2034102728}
+  - {fileID: 1617921348}
+--- !u!114 &2100000102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a2207cf7c5343779b01cdfa5be130b5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CooperationHints
+  levelHints:
+  - id: waiting_at_star
+    context: 4
+    bridge: {fileID: 0}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "מצאתם כוכב! עזרו לחבר להצטרף."
+  - id: partner_star
+    context: 3
+    bridge: {fileID: 0}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "החבר בכוכב! איך מצטרפים?"
+  - id: bridge_1_hold
+    context: 1
+    bridge: {fileID: 1818082502}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "חפשו כפתור בצבע שלכם."
+  - id: bridge_1_turns
+    context: 1
+    bridge: {fileID: 1818082502}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "עכשיו מתחלפים בתפקידים!"
+  - id: bridge_2_hold
+    context: 1
+    bridge: {fileID: 520447737}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "חפשו כפתור בצבע שלכם."
+  - id: bridge_2_turns
+    context: 1
+    bridge: {fileID: 520447737}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "עכשיו מתחלפים בתפקידים!"
+  - id: bridge_3_hold
+    context: 1
+    bridge: {fileID: 910906128}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "חפשו כפתור בצבע שלכם."
+  - id: bridge_3_turns
+    context: 1
+    bridge: {fileID: 910906128}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "עכשיו מתחלפים בתפקידים!"
+  - id: together
+    context: 0
+    bridge: {fileID: 0}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "מי עוזר ראשון?"
+  requestCooldownSeconds: 2
+  displaySeconds: 9
+  stuckAfterSeconds: 25
+  fallbackHint: "מי עוזר ומי עובר?"
+--- !u!114 &2100000103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d3729f9a30f4392a6331e847d0e8e45, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlaytestUI
+  canvas: {fileID: 588698725}
+  font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  hebrewSourceFont: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
+  blue: {r: 0.16, g: 0.55, b: 0.86, a: 1}
+  red: {r: 0.86, g: 0.23, b: 0.28, a: 1}
+  ink: {r: 0.08, g: 0.19, b: 0.25, a: 1}
+  progressColor: {r: 0.2, g: 0.72, b: 0.44, a: 1}
+  scoreAnimationSeconds: 1.25
+  partialFeedback: "כל הכבוד!\nננסה שוב ביחד?"
+  fullFeedback: "איזה צוות!\nהצלחנו ביחד!"
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

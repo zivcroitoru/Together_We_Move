@@ -13,6 +13,24 @@ public sealed class PlayerController : MonoBehaviour
     private Collider2D col;
     private float moveInput;
     private float touchMoveInput;
+    private bool inputLocked;
+
+    // Stable anonymous slots shared by keyboard, touch controls, goals and logging.
+    public int PlayerId => isPlayerTwo ? 2 : 1;
+    public Collider2D BodyCollider => col;
+    public bool IsGrounded => col != null && col.IsTouchingLayers(groundLayer);
+
+    public void SetInputLocked(bool locked)
+    {
+        inputLocked = locked;
+        moveInput = touchMoveInput = 0f;
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.simulated = !locked;
+        }
+        if (view) view.SetWalking(false);
+    }
 
     private void Awake()
     {
@@ -34,6 +52,7 @@ public sealed class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (inputLocked) return;
         ReadInput();
         bool grounded = col.IsTouchingLayers(groundLayer);
         if (view)
@@ -43,7 +62,11 @@ public sealed class PlayerController : MonoBehaviour
         }
     }
 
-    private void FixedUpdate() => rb.linearVelocity = new Vector2(col.IsTouchingLayers(groundLayer) ? moveInput * moveSpeed : 0f, rb.linearVelocity.y);
+    private void FixedUpdate()
+    {
+        if (!inputLocked)
+            rb.linearVelocity = new Vector2(col.IsTouchingLayers(groundLayer) ? moveInput * moveSpeed : 0f, rb.linearVelocity.y);
+    }
 
     private void ReadInput()
     {
@@ -71,11 +94,14 @@ public sealed class PlayerController : MonoBehaviour
     }
 
     // פונקציות לכפתורי מסך (UI)
-    public void SetTouchMove(float direction) => touchMoveInput = direction;
+    public void SetTouchMove(float direction)
+    {
+        if (!inputLocked) touchMoveInput = direction;
+    }
 
     public void Jump()
     {
-        if (col != null && col.IsTouchingLayers(groundLayer))
+        if (!inputLocked && col != null && col.IsTouchingLayers(groundLayer))
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
     }
 }

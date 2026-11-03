@@ -307,6 +307,112 @@ Transform:
   - {fileID: 487704910}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &142736167
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 142736170}
+  - component: {fileID: 142736169}
+  - component: {fileID: 142736168}
+  m_Layer: 0
+  m_Name: NetworkManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &142736168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 142736167}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6960e84d07fb87f47956e7a81d71c4e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Transports.UTP.UnityTransport
+  m_ProtocolType: 0
+  m_UseWebSockets: 0
+  m_UseEncryption: 0
+  m_MaxPacketQueueSize: 128
+  m_MaxPayloadSize: 6144
+  m_HeartbeatTimeoutMS: 500
+  m_ConnectTimeoutMS: 1000
+  m_MaxConnectAttempts: 60
+  m_DisconnectTimeoutMS: 30000
+  ConnectionData:
+    Address: 127.0.0.1
+    Port: 7777
+    WebSocketPath: /
+    ServerListenAddress: 127.0.0.1
+    ClientBindPort: 0
+  DebugSimulator:
+    PacketDelayMS: 0
+    PacketJitterMS: 0
+    PacketDropRate: 0
+--- !u!114 &142736169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 142736167}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 593a2fe42fa9d37498c96f9a383b6521, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkManager
+  NetworkManagerExpanded: 0
+  NetworkConfig:
+    ProtocolVersion: 0
+    NetworkTransport: {fileID: 142736168}
+    PlayerPrefab: {fileID: 0}
+    Prefabs:
+      NetworkPrefabsLists:
+      - {fileID: 11400000, guid: 976c48174c94cff4781f5313793cd614, type: 2}
+    TickRate: 30
+    ClientConnectionBufferTimeout: 10
+    ConnectionApproval: 0
+    ConnectionData: 
+    EnableTimeResync: 0
+    TimeResyncInterval: 30
+    EnsureNetworkVariableLengthSafety: 0
+    EnableSceneManagement: 1
+    ForceSamePrefabs: 1
+    RecycleNetworkIds: 1
+    NetworkIdRecycleDelay: 120
+    RpcHashSize: 0
+    LoadSceneTimeOut: 120
+    SpawnTimeout: 10
+    EnableNetworkLogs: 1
+    NetworkTopology: 0
+    UseCMBService: 0
+    AutoSpawnPlayerPrefabClientSide: 1
+    NetworkProfilingMetrics: 1
+    OldPrefabList: []
+  RunInBackground: 1
+  LogLevel: 1
+--- !u!4 &142736170
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 142736167}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &146813399
 GameObject:
   m_ObjectHideFlags: 0
@@ -9004,6 +9110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f347f4f8f722364b924f7c3ec264917, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BridgeController
+  ShowTopMostFoldoutHeaderGroup: 1
   bridgeJuice: {fileID: 1818082501}
 --- !u!1 &1828736515
 GameObject:
@@ -9015,6 +9122,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1828736517}
   - component: {fileID: 1828736516}
+  - component: {fileID: 2100000101}
+  - component: {fileID: 2100000102}
+  - component: {fileID: 2100000103}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -9035,7 +9145,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   winSequence: {fileID: 666563778}
-  transitionDelay: 2.5
+  transitionDelay: 0.5
+  partialCompletionGraceSeconds: 6
 --- !u!4 &1828736517
 Transform:
   m_ObjectHideFlags: 0
@@ -9805,6 +9916,8 @@ GameObject:
   - component: {fileID: 2034102729}
   - component: {fileID: 2034102728}
   - component: {fileID: 2034102732}
+  - component: {fileID: 2034102733}
+  - component: {fileID: 2034102734}
   m_Layer: 0
   m_Name: Player1
   m_TagString: Player
@@ -9933,6 +10046,79 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   deathY: -12
+--- !u!114 &2034102733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2034102727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3092380927
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &2034102734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2034102727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkTransform
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 0
+  TickSyncChildren: 0
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!1 &2052844944
 GameObject:
   m_ObjectHideFlags: 0
@@ -10357,6 +10543,98 @@ Transform:
   - {fileID: 1117099116}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2100000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b37d797c3ef2478681fa9dbb68a4ca0b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CooperationTracker
+  bridges:
+  - {fileID: 1818082502}
+  players:
+  - {fileID: 2034102728}
+  - {fileID: 1617921348}
+--- !u!114 &2100000102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a2207cf7c5343779b01cdfa5be130b5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CooperationHints
+  levelHints:
+  - id: waiting_at_star
+    context: 4
+    bridge: {fileID: 0}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "מצאתם כוכב! עזרו לחבר להצטרף."
+  - id: partner_star
+    context: 3
+    bridge: {fileID: 0}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "החבר בכוכב! איך מצטרפים?"
+  - id: bridge_lever
+    context: 2
+    bridge: {fileID: 1818082502}
+    lever: {fileID: 1943340108}
+    playerId: 0
+    text: "מה יש שם שעוזר לחבר?"
+  - id: bridge_1_hold
+    context: 1
+    bridge: {fileID: 1818082502}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "אחד מחזיק, השני עובר."
+  - id: bridge_1_turns
+    context: 1
+    bridge: {fileID: 1818082502}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "עכשיו מתחלפים בתפקידים!"
+  - id: together
+    context: 0
+    bridge: {fileID: 0}
+    lever: {fileID: 0}
+    playerId: 0
+    text: "מי עוזר ראשון?"
+  requestCooldownSeconds: 2
+  displaySeconds: 9
+  stuckAfterSeconds: 25
+  fallbackHint: "מי עוזר ומי עובר?"
+--- !u!114 &2100000103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d3729f9a30f4392a6331e847d0e8e45, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlaytestUI
+  canvas: {fileID: 588698725}
+  font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  hebrewSourceFont: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
+  blue: {r: 0.16, g: 0.55, b: 0.86, a: 1}
+  red: {r: 0.86, g: 0.23, b: 0.28, a: 1}
+  ink: {r: 0.08, g: 0.19, b: 0.25, a: 1}
+  progressColor: {r: 0.2, g: 0.72, b: 0.44, a: 1}
+  scoreAnimationSeconds: 1.25
+  partialFeedback: "כל הכבוד!\nננסה שוב ביחד?"
+  fullFeedback: "איזה צוות!\nהצלחנו ביחד!"
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -10377,3 +10655,4 @@ SceneRoots:
   - {fileID: 1943340110}
   - {fileID: 57864264}
   - {fileID: 2105665419}
+  - {fileID: 142736170}

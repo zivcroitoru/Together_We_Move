@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.Events;
+using UnityEngine.InputSystem.UI;
 
 public static class SetupOnScreenControls
 {
@@ -15,13 +16,14 @@ public static class SetupOnScreenControls
 
         foreach (var p in players)
         {
-            var field = typeof(PlayerController).GetField("isPlayerTwo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            bool isP2 = field != null && (bool)field.GetValue(p);
-            if (isP2) p2 = p; else p1 = p;
+            if (p.PlayerId == 2) p2 = p; else p1 = p;
         }
 
-        if (!p1 && players.Length > 0) p1 = players[0];
-        if (!p2 && players.Length > 1) p2 = players[1];
+        if (!p1 || !p2 || players.Length != 2)
+        {
+            Debug.LogError("Controls need exactly one Blue and one Red player. Check Is Player Two; identity cannot be guessed.");
+            return;
+        }
 
         // 2. Setup Canvas & Scaler for iPad 4:3
         Canvas canvas = Object.FindFirstObjectByType<Canvas>();
@@ -45,7 +47,8 @@ public static class SetupOnScreenControls
         // 3. Ensure EventSystem exists
         if (!Object.FindFirstObjectByType<EventSystem>())
         {
-            GameObject es = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+            GameObject es = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+            es.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
             Undo.RegisterCreatedObjectUndo(es, "Create EventSystem");
         }
 
@@ -60,7 +63,7 @@ public static class SetupOnScreenControls
 
         // 5. Build Pads
         CreatePlayerPad("P1_Controls", canvas.transform, new Vector2(0f, 0f), 1f, bubblyBlue, bubbleSprite, leftArrowSprite, rightArrowSprite, upArrowSprite, p1);
-        CreatePlayerPad("P2_Controls", canvas.transform, new Vector2(1f, 0f), -1f, bubblyRed, bubbleSprite, leftArrowSprite, rightArrowSprite, upArrowSprite, p2 ?? p1);
+        CreatePlayerPad("P2_Controls", canvas.transform, new Vector2(1f, 0f), -1f, bubblyRed, bubbleSprite, leftArrowSprite, rightArrowSprite, upArrowSprite, p2);
 
         Debug.Log("Image-based on-screen controls generated successfully!");
     }

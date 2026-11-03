@@ -1,0 +1,11 @@
+# UniText proof: initialization fix
+
+The exact null receiver at UniText.cs:388 is `fontProvider` in `fontProvider.Appearance = value`. The Appearance asset exists and has valid material/shader references. UniText 1.0.0's FontStack setter calls SetDirty(Font), which explicitly clears fontProvider. ValidateAndInitialize recreates it during FilterAndPrepareComponents in the canvas preparation pass, not immediately after AddComponent or assigning FontStack. Consequently the documented consecutive runtime FontStack/Appearance assignments fail on this pinned version before first preparation.
+
+UniTextProof now creates the GameObject inactive, assigns both initial serialized references through SerializedObject, configures the single logical Hebrew string, and activates the object. This matches the serialized setup in the official BasicUsage scene (fontStack and appearance are already assigned). The normal canvas pass then initializes the provider. No package-cache modifications, reflection calls into private initialization, or exception suppression are used.
+
+Asset checks cover the embedded main font and appearance materials/shaders. The actual Unity regression asserts a fresh component's FontProvider is null before preparation, then non-null with the correct Appearance and MeshGenerator after Canvas.ForceUpdateCanvases. It also verifies nonzero glyph IDs and spatial glyph-cluster order for exactly `יופי של שיתוף!` without changing the source string. These checks passed in the running Unity 6000.3.21f1 Editor.
+
+The Poll request is consumed and its update callback removed before executing Run. Compilation/domain reload no longer recreates requests. Exceptions propagate normally, rather than being caught and repeatedly logged. Run again explicitly via Tools > Hebrew > UniText proof and regression.
+
+Only Assets/Editor/UniTextProof.cs and its isolated generated proof prefab were changed for this fix. Game UI migration is on hold. Logs/UniText/proof.png contains the actual single-label render. It still shows black material artifacts despite correct glyph order, so the visual proof has not passed. That rendering/material issue must be resolved before production migration; Android and WebGL have not been visually validated.

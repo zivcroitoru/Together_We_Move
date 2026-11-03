@@ -22,6 +22,8 @@ public sealed class BridgeJuice : MonoBehaviour
     private Coroutine activeRoutine;
     private bool isShown;
 
+    public BoxCollider2D Surface => bridgeCollider;
+
     private void Awake()
     {
         if (bridgeCollider == null)

@@ -43,7 +43,7 @@ public sealed class SplitStarGoal : MonoBehaviour
         PlayerController player = other.GetComponentInParent<PlayerController>();
         if (!player) return;
 
-        bool isP2 = IsPlayerTwo(player);
+        bool isP2 = player.PlayerId == 2;
 
         if (isP2 && !p2Registered)
         {
@@ -57,6 +57,7 @@ public sealed class SplitStarGoal : MonoBehaviour
         }
 
         CheckWin();
+        gameManager?.RegisterGoal(player.PlayerId);
     }
 
     private void CheckWin()
@@ -125,13 +126,5 @@ public sealed class SplitStarGoal : MonoBehaviour
         }
 
         transform.localScale = origScale;
-        gameManager?.CompleteLevel();
-    }
-
-    private bool IsPlayerTwo(PlayerController player)
-    {
-        var field = typeof(PlayerController).GetField("isPlayerTwo",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
-        return field != null && (bool)field.GetValue(player);
     }
 }

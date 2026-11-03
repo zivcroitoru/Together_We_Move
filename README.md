@@ -1,14 +1,16 @@
 # Prototype 3: Together We Move
 
 ## Overview
-Two kids control two different characters (Blue and Red) on the same screen. They must help each other open paths and get through doors. Both must reach the end to win.
+Two kids control two different characters (Blue and Red) on the same screen. They help each other open paths and get through doors. Levels now accept partial finishes, celebrate full cooperation, and record anonymous playtest attempts, retries and hints.
+
+See [the current visual playtest guide](Docs/VISUAL_PLAYTEST.md) for Inspector settings, the gameplay-based score calculation, CSV export, attribution limits and the manual test checklist.
 
 ---
 
 ## How It Works
 * **Two Characters:** Each kid has their own character.
 * **Helping Roles:** One kid holds a switch while the other kid crosses.
-* **Finish Together:** Both characters must reach the end star.
+* **Finish Together:** Each character collects a star half. By default, one arrival can finish after a short grace period; helping both friends cross every bridge and reaching the star together earns 100%.
 
 ---
 

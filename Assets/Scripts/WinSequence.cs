@@ -17,11 +17,17 @@ public sealed class WinSequence : MonoBehaviour
     {
         canvasGroup = GetComponent<CanvasGroup>();
         canvasGroup.alpha = 0f;
+        canvasGroup.blocksRaycasts = false;
+        canvasGroup.interactable = false;
     }
+
+    public void SetTitle(TMP_Text title) => winText = title;
 
     public void PlayWin()
     {
         gameObject.SetActive(true);
+        canvasGroup.blocksRaycasts = true;
+        canvasGroup.interactable = true;
         StartCoroutine(SequenceRoutine());
     }
 

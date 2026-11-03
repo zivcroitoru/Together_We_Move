@@ -10,6 +10,8 @@ public sealed class Lever : MonoBehaviour
     [SerializeField] private Sprite flippedSprite;
 
     private bool isFlipped;
+    public bool IsFlipped => isFlipped;
+    public BridgeController Bridge => bridgeController;
 
     private void Awake()
     {
@@ -24,14 +26,15 @@ public sealed class Lever : MonoBehaviour
     {
         if (isFlipped) return;
 
-        if (other.GetComponentInParent<PlayerController>())
+        var player = other.GetComponentInParent<PlayerController>();
+        if (player)
         {
             isFlipped = true;
 
             if (spriteRenderer != null && flippedSprite != null)
                 spriteRenderer.sprite = flippedSprite;
 
-            bridgeController?.PullLever();
+            bridgeController?.PullLever(player.PlayerId);
         }
     }
 }
