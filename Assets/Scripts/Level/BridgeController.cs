@@ -12,6 +12,22 @@ public sealed class BridgeController : NetworkBehaviour
     private int localButtonCount;
     private bool localLeverPulled;
     private int leverPlayerId;
+    private float assistanceGrace, graceUntil;
+    private int graceHelpers;
+    private bool graceWasActive, graceUseNotified;
+    private NetworkVariable<bool> assistanceOpen=new NetworkVariable<bool>(false);
+    public event System.Action GraceUsed;
+    public void SetAssistanceGrace(float seconds){assistanceGrace=Mathf.Max(0,seconds);}
+    private bool GraceActive => Time.unscaledTime<graceUntil;
+    private void Update()
+    {
+        if(!CanObserveLocally)return;
+        bool active=GraceActive;
+        bool normallyOpen=IsSpawned?isLeverPulled.Value||playersOnButton.Value>0:localLeverPulled||localButtonCount>0;
+        if(!active)graceUseNotified=false;
+        if(active&&!normallyOpen&&!graceUseNotified){graceUseNotified=true;GraceUsed?.Invoke();}
+        if(active!=graceWasActive){graceWasActive=active;if(IsSpawned)assistanceOpen.Value=active;EvaluateStateClient();}
+    }
 
     public BoxCollider2D Surface => bridgeJuice != null ? bridgeJuice.Surface : null;
     public bool CanObserveLocally => !IsSpawned || IsServer;
@@ -19,7 +35,7 @@ public sealed class BridgeController : NetworkBehaviour
     {
         get
         {
-            int mask = leverPlayerId == 0 ? 0 : 1 << (leverPlayerId - 1);
+            int mask = (leverPlayerId == 0 ? 0 : 1 << (leverPlayerId - 1)) | (GraceActive ? graceHelpers : 0);
             foreach (var helper in localHelpers)
                 if (helper.Value > 0 && helper.Key >= 1 && helper.Key <= 2)
                     mask |= 1 << (helper.Key - 1);
@@ -31,6 +47,7 @@ public sealed class BridgeController : NetworkBehaviour
     {
         playersOnButton.OnValueChanged += OnButtonsChanged;
         isLeverPulled.OnValueChanged += OnLeverChanged;
+        assistanceOpen.OnValueChanged += OnLeverChanged;
         EvaluateStateClient();
     }
 
@@ -38,6 +55,7 @@ public sealed class BridgeController : NetworkBehaviour
     {
         playersOnButton.OnValueChanged -= OnButtonsChanged;
         isLeverPulled.OnValueChanged -= OnLeverChanged;
+        assistanceOpen.OnValueChanged -= OnLeverChanged;
     }
 
     private void OnButtonsChanged(int previous, int current) => EvaluateStateClient();
@@ -60,6 +78,8 @@ public sealed class BridgeController : NetworkBehaviour
         if (!CanObserveLocally) return;
         localHelpers.TryGetValue(playerId, out int count);
         if (count == 0) return;
+        if(assistanceGrace>0&&playerId>=1&&playerId<=2)
+        {if(!GraceActive)graceHelpers=0;graceUntil=Time.unscaledTime+assistanceGrace;graceHelpers|=1<<(playerId-1);}
         localHelpers[playerId] = count - 1;
         if (IsSpawned) playersOnButton.Value = Mathf.Max(0, playersOnButton.Value - 1);
         else localButtonCount = Mathf.Max(0, localButtonCount - 1);
@@ -77,8 +97,8 @@ public sealed class BridgeController : NetworkBehaviour
 
     private void EvaluateStateClient()
     {
-        bool open = IsSpawned ? isLeverPulled.Value || playersOnButton.Value > 0
-            : localLeverPulled || localButtonCount > 0;
+        bool open = IsSpawned ? isLeverPulled.Value || playersOnButton.Value > 0 || assistanceOpen.Value
+            : localLeverPulled || localButtonCount > 0 || GraceActive;
         if (open)
             bridgeJuice?.ShowBridge();
         else

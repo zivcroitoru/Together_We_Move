@@ -19,7 +19,7 @@ Automatic hints are optional and appear after inactivity. Position changes reset
 
 ## Researcher-only data
 
-Press F8 while results are visible to reveal export and new-pair controls. This panel is hidden by default and has no child-facing menu button. Scores, attempts, per-slot replays, manually requested hints, automatic hints and timestamps continue to use the existing local JSONL journal and CSV export. The score remains 100 × earned credits / (2 × scored bridges + 2): one credit for each player helping their partner cross each bridge and one per star arrival. Hints, elapsed time and replays do not deduct points. Button colors identify the requesting player slot, not the physical child's hand; keep color assignments stable during a pair's session.
+Press F8 at any time to reveal export and new-pair controls. This panel is hidden by default and has no child-facing menu button. Scores, attempts, per-slot replays, manually requested hints, automatic hints and timestamps continue to use the existing local JSONL journal and CSV export. The score remains 100 × earned credits / (2 × scored bridges + 2): one credit for each player helping their partner cross each bridge and one per star arrival. Hints, elapsed time and replays do not deduct points. Button colors identify the requesting player slot, not the physical child's hand; keep color assignments stable during a pair's session.
 
 ## Validation and manual checklist
 
@@ -38,3 +38,7 @@ Before testing with children:
 ## Workspace verification
 
 The corrected results screen was rendered and visually inspected in the running Unity 6000.3.21f1 Editor. Stars, smile icons, both replay arrows and the next arrow were visible; the bar was set to 75% for the captured check. The native editor checks passed, including CanvasRenderer presence and overlapping spotlight hole area. Desktop/Editor C# compilation passed with existing Inspector-field/deprecated-API warnings. Isolated score, per-slot counts, persistence replay and CSV checks passed. Live simultaneous touch, automatic-hint timing, action-based hint dismissal, scene transitions and target-device builds still need the checklist above.
+
+Movement-first onboarding, per-child tutorial timings, Inspector configuration and additional checks: see [ONBOARDING.md](ONBOARDING.md).
+
+The progressive 10/20/30/45-second help and weighted scores supersede the earlier automatic-hint timer and equal-credit formula in this document. Current configuration and tests: [FLEXIBLE_COMPLETION.md](FLEXIBLE_COMPLETION.md).

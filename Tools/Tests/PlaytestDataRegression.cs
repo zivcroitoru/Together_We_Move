@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-class CoreRegression { static int Main() { try { CheckProgress(); CheckPersistence(); CheckTutorialAnalytics(); Console.WriteLine("PASS: scoring, anti-farming, separate player counts, persistence replay, comparisons, CSV escaping, damaged-tail recovery, anonymous pair reset."); return 0; } catch(Exception e) { Console.WriteLine(e); return 1; } }
+class CoreRegression { static int Main() { try { CheckProgress(); CheckPersistence(); CheckTutorialAnalytics(); CheckFlexibleLevels(); Console.WriteLine("PASS: scoring, anti-farming, separate player counts, persistence replay, comparisons, CSV escaping, damaged-tail recovery, anonymous pair reset, tutorial timing persistence, dashboard counts and tutorial CSV."); return 0; } catch(Exception e) { Console.WriteLine(e); return 1; } }
     private static void CheckProgress()
     {
         var progress = new CooperationProgress(new[] { "bridge" });
@@ -78,6 +78,30 @@ class CoreRegression { static int Main() { try { CheckProgress(); CheckPersisten
             Require(csv.Contains("tutorial_run_id,tutorial_action,tutorial_elapsed_seconds,tutorial_phase_seconds")&&csv.Contains("\"run\",\"left\",\"1.25\",\"1.25\""),"Tutorial CSV columns and precision");
         }
         finally {if(Directory.Exists(directory))Directory.Delete(directory,true);}
+    }
+
+    private static void CheckFlexibleLevels()
+    {
+        foreach(int bridgeCount in new[]{1,3})
+        {
+            var ids=Enumerable.Range(0,bridgeCount).Select(i=>"bridge"+i).ToArray();
+            var progress=new CooperationProgress(ids);
+            Require(LevelCooperationScore.Calculate(progress,20,60,20)==0,"Idle must not earn points");
+            progress.AddAssist(ids[0],1,2);progress.AddGoal(1);
+            float partial=LevelCooperationScore.Calculate(progress,20,60,20);
+            Require(partial>0&&partial<100,"Partial credit in both levels");
+            float helped=LevelCooperationScore.Calculate(progress,20,60,20,.45f);
+            Require(helped<partial&&progress.GoalCount==1,"Fallback reduces earned score without fabricating goal");
+            foreach(var id in ids){progress.AddAssist(id,1,2);progress.AddAssist(id,2,1);}
+            progress.AddGoal(2);
+            Require(LevelCooperationScore.Calculate(progress,20,60,20)==100,"Independent full score in both levels");
+            Require(LevelCooperationScore.Calculate(progress,20,60,20,.8f)==80,"Actual mechanical help discounted");
+            Require(LevelCooperationScore.Calculate(progress,0,0,0)==0,"Zero weights safe");
+            Require(!progress.AddAssist(ids[0],1,2),"No repeated action farming");
+        }
+        var entry=new PlaytestEvent{completionSeconds=46.5f,participantMask=3,assistanceStage=4,assistanceUsed=true,automaticCompletion=true,outcome="assisted"};
+        string csv=PlaytestStore.ToCsv(new[]{entry});
+        Require(csv.Contains("completion_seconds,participant_mask,assistance_stage,assistance_used,automatic_completion")&&csv.Contains("46.5"),"Assistance and duration exported");
     }
 
     private static void Require(bool condition, string message)

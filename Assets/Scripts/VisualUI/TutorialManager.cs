@@ -179,6 +179,14 @@ public sealed class TutorialManager : MonoBehaviour
         var view=player.GetComponentInChildren<PlayerView>();var visual=view?view.transform:null;var scale=visual?visual.localScale:Vector3.one;
         float elapsed=0;while(elapsed<.25f){elapsed+=Time.unscaledDeltaTime;if(visual)visual.localScale=scale*(1+.1f*Mathf.Sin(Mathf.Clamp01(elapsed/.25f)*Mathf.PI));yield return null;}if(visual)visual.localScale=scale;
     }
+    public void EndForAssistedCompletion()
+    {
+        if(!IsActive)return;
+        Metric("tutorial_ended_with_assistance",0,"system","");
+        IsActive=false;ui.DemonstrationRepeated-=OnRepeated;ui.HideHint();
+        // End this session without claiming the child learned unperformed controls.
+        TutorialSession.Complete();
+    }
     void Finish()
     {
         if(!IsActive)return;IsActive=false;ui.DemonstrationRepeated-=OnRepeated;ui.HideHint();

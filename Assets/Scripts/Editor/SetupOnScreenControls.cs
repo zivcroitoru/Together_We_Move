@@ -52,23 +52,20 @@ public static class SetupOnScreenControls
             Undo.RegisterCreatedObjectUndo(es, "Create EventSystem");
         }
 
-        // 4. Generate Procedural Bubble & Arrow Sprites
-        Sprite bubbleSprite = GetOrCreateCircleSprite();
-        Sprite leftArrowSprite = CreateProceduralArrowSprite(ArrowDirection.Left);
-        Sprite rightArrowSprite = CreateProceduralArrowSprite(ArrowDirection.Right);
-        Sprite upArrowSprite = CreateProceduralArrowSprite(ArrowDirection.Up);
-
-        Color bubblyBlue = new Color(0.25f, 0.72f, 1f, 0.95f);
-        Color bubblyRed  = new Color(1f, 0.35f, 0.35f, 0.95f);
+        // Use the same licensed artwork as the serialized level controls.
+        Sprite blueSprite = Artwork("Blue"), redSprite = Artwork("Red");
+        Sprite leftArrowSprite = Artwork("Left"), rightArrowSprite = Artwork("Right"), upArrowSprite = Artwork("Jump");
+        if(!blueSprite||!redSprite||!leftArrowSprite||!rightArrowSprite||!upArrowSprite)
+            throw new System.InvalidOperationException("Import Assets/Art/KenneyControls before generating controls.");
+        Color bubblyBlue = Color.white, bubblyRed = Color.white;
 
         // 5. Build Pads
-        CreatePlayerPad("P1_Controls", canvas.transform, new Vector2(0f, 0f), 1f, bubblyBlue, bubbleSprite, leftArrowSprite, rightArrowSprite, upArrowSprite, p1);
-        CreatePlayerPad("P2_Controls", canvas.transform, new Vector2(1f, 0f), -1f, bubblyRed, bubbleSprite, leftArrowSprite, rightArrowSprite, upArrowSprite, p2);
+        CreatePlayerPad("P1_Controls", canvas.transform, new Vector2(0f, 0f), 1f, bubblyBlue, blueSprite, leftArrowSprite, rightArrowSprite, upArrowSprite, p1);
+        CreatePlayerPad("P2_Controls", canvas.transform, new Vector2(1f, 0f), -1f, bubblyRed, redSprite, leftArrowSprite, rightArrowSprite, upArrowSprite, p2);
 
         Debug.Log("Image-based on-screen controls generated successfully!");
     }
 
-    private enum ArrowDirection { Left, Right, Up }
 
     private static void CreatePlayerPad(string groupName, Transform canvas, Vector2 anchor, float xOffsetSign, Color color, 
         Sprite bgSprite, Sprite leftSpr, Sprite rightSpr, Sprite upSpr, PlayerController target)
@@ -126,6 +123,9 @@ public static class SetupOnScreenControls
         Image img = obj.GetComponent<Image>();
         img.sprite = bgSprite;
         img.color = col;
+        img.preserveAspect = true;
+        var button=obj.GetComponent<Button>();button.targetGraphic=img;
+        var colors=button.colors;colors.normalColor=Color.white;colors.highlightedColor=new Color(1.08f,1.08f,1.08f);colors.pressedColor=new Color(.82f,.82f,.82f);colors.selectedColor=Color.white;colors.fadeDuration=.08f;button.colors=colors;
 
         // Child Arrow Image
         GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -141,6 +141,7 @@ public static class SetupOnScreenControls
         Image iconImg = iconObj.GetComponent<Image>();
         iconImg.sprite = iconSprite;
         iconImg.color = Color.white;
+        iconImg.preserveAspect = true;
         iconImg.raycastTarget = false;
 
         return obj;
@@ -162,74 +163,5 @@ public static class SetupOnScreenControls
         EditorUtility.SetDirty(trigger);
     }
 
-    private static Sprite CreateProceduralArrowSprite(ArrowDirection dir)
-    {
-        int res = 128;
-        Texture2D tex = new Texture2D(res, res, TextureFormat.RGBA32, false);
-        Color[] fill = new Color[res * res];
-        for (int i = 0; i < fill.Length; i++) fill[i] = Color.clear;
-        tex.SetPixels(fill);
-
-        float pad = 24f;
-        Vector2 a, b, c;
-
-        switch (dir)
-        {
-            case ArrowDirection.Left:
-                a = new Vector2(pad, res * 0.5f);
-                b = new Vector2(res - pad, res - pad);
-                c = new Vector2(res - pad, pad);
-                break;
-            case ArrowDirection.Right:
-                a = new Vector2(res - pad, res * 0.5f);
-                b = new Vector2(pad, pad);
-                c = new Vector2(pad, res - pad);
-                break;
-            default: // Up
-                a = new Vector2(res * 0.5f, res - pad);
-                b = new Vector2(pad, pad);
-                c = new Vector2(res - pad, pad);
-                break;
-        }
-
-        for (int y = 0; y < res; y++)
-        {
-            for (int x = 0; x < res; x++)
-            {
-                if (IsPointInTriangle(new Vector2(x, y), a, b, c))
-                    tex.SetPixel(x, y, Color.white);
-            }
-        }
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, res, res), new Vector2(0.5f, 0.5f));
-    }
-
-    private static bool IsPointInTriangle(Vector2 p, Vector2 p0, Vector2 p1, Vector2 p2)
-    {
-        float s = p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y;
-        float t = p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y;
-        if ((s < 0) != (t < 0) && s != 0 && t != 0) return false;
-        float d = -p1.y * p2.x + p0.y * (p2.x - p1.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y;
-        return d < 0 ? (s <= 0 && s + t >= d) : (s >= 0 && s + t <= d);
-    }
-
-    private static Sprite GetOrCreateCircleSprite()
-    {
-        Sprite knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-        if (knob) return knob;
-
-        int res = 128;
-        Texture2D tex = new Texture2D(res, res, TextureFormat.RGBA32, false);
-        float r = res * 0.5f;
-        for (int y = 0; y < res; y++)
-        {
-            for (int x = 0; x < res; x++)
-            {
-                float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(r, r));
-                tex.SetPixel(x, y, d <= r ? Color.white : Color.clear);
-            }
-        }
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, res, res), new Vector2(0.5f, 0.5f));
-    }
+    private static Sprite Artwork(string name) => AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/KenneyControls/"+name+".png");
 }

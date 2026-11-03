@@ -16,11 +16,13 @@ public sealed class PlaytestUI : MonoBehaviour
     [SerializeField,Range(.25f,.85f)] float hintDimOpacity=.62f;
     GameManager manager;WinSequence celebration;RectTransform hud,panel,card,fill;
     CanvasGroup panelGroup;Sprite rounded;Image[] avatars=new Image[2];RectTransform[] stars=new RectTransform[3];
-    RectTransform researcher;TMP_Text researcherStatus;string storageError;
+    RectTransform researcher;UnityEngine.UI.Button newPairButton;TMP_Text researcherStatus;string storageError,exportStatus;
     Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> rings=new(),arrows=new(),hands=new();
     readonly Dictionary<int,GuidanceTiming> guideClocks=new();readonly Dictionary<int,float> handStarts=new();
     string guidanceContext;float dashboardNextUpdate;PlayerController[] guidePlayers;Vector3[] guidePositions;
     public event System.Action<int> DemonstrationRepeated;
+    bool handDemonstrations=true;
+    public void SetHandDemonstrations(bool enabled){handDemonstrations=enabled;}
     public bool ResultsVisible{get;private set;}
     public struct HintSpot
     {
@@ -44,6 +46,7 @@ public sealed class PlaytestUI : MonoBehaviour
         if(!panel)panel=Rect("Visual Results",canvas.transform,Vector2.zero,Vector2.one);
         panelGroup=panel.GetComponent<CanvasGroup>();if(!panelGroup)panelGroup=panel.gameObject.AddComponent<CanvasGroup>();
         panelGroup.alpha=0;panelGroup.blocksRaycasts=false;panelGroup.interactable=false;
+        rounded=Resources.Load<Sprite>("KenneyUI/Panel");
         hud=Rect("Visual HUD",canvas.transform,Vector2.zero,Vector2.one);
         Button("Blue Hint",hud,new Vector2(.035f,.84f),new Vector2(.145f,.97f),blue,VisualIcon.Shape.Bulb,()=>manager.RequestHint(1));
         Button("Red Hint",hud,new Vector2(.855f,.84f),new Vector2(.965f,.97f),red,VisualIcon.Shape.Bulb,()=>manager.RequestHint(2));
@@ -62,8 +65,8 @@ public sealed class PlaytestUI : MonoBehaviour
         Button("Next Level",card,new Vector2(.39f,.06f),new Vector2(.61f,.29f),new Color(.22f,.56f,.29f),VisualIcon.Shape.Arrow,manager.Continue);
         Button("Red Replay",card,new Vector2(.66f,.06f),new Vector2(.90f,.29f),red,VisualIcon.Shape.Replay,()=>manager.RequestRetry(2));
         researcher=Box("Researcher tools (F8)",canvas.transform,new Vector2(.08f,.06f),new Vector2(.92f,.74f),Color.white);
-        AdultButton("Export CSV",researcher,new Vector2(.02f,.90f),new Vector2(.48f,.98f),()=>{var path=PlaytestData.Store.ExportCsv();researcherStatus.text=path??PlaytestData.Store.LastError;});
-        AdultButton("New anonymous pair",researcher,new Vector2(.52f,.90f),new Vector2(.98f,.98f),manager.StartNewPair);
+        AdultButton("Export CSV",researcher,new Vector2(.02f,.90f),new Vector2(.48f,.98f),()=>{var path=PlaytestData.Store.ExportCsv();exportStatus=path??PlaytestData.Store.LastError;dashboardNextUpdate=0;});
+        newPairButton=AdultButton("New anonymous pair",researcher,new Vector2(.52f,.90f),new Vector2(.98f,.98f),manager.StartNewPair);
         researcherStatus=AdultText(researcher,"",new Vector2(.02f,.02f),new Vector2(.98f,.87f));researcher.gameObject.SetActive(false);
         var developerCanvas=researcher.gameObject.AddComponent<Canvas>();developerCanvas.overrideSorting=true;developerCanvas.sortingOrder=500;researcher.gameObject.AddComponent<GraphicRaycaster>();
         card.gameObject.SetActive(false);panel.SetAsLastSibling();
@@ -76,13 +79,14 @@ public sealed class PlaytestUI : MonoBehaviour
     void Update()
     {
         if(!manager)return;
+        if(newPairButton)newPairButton.interactable=manager.LevelCompleted&&!manager.IsTransitioning;
         if(Keyboard.current!=null&&Keyboard.current.f8Key.wasPressedThisFrame ){researcher.gameObject.SetActive(!researcher.gameObject.activeSelf);dashboardNextUpdate=0;}
-        if(researcher.gameObject.activeSelf&&Time.unscaledTime>=dashboardNextUpdate){dashboardNextUpdate=Time.unscaledTime+.25f;researcherStatus.text=TutorialDashboard.Format(PlaytestData.Store)+(storageError==null?"":"\n"+storageError);}
+        if(researcher.gameObject.activeSelf&&Time.unscaledTime>=dashboardNextUpdate){dashboardNextUpdate=Time.unscaledTime+.25f;researcherStatus.text=LevelPlaytestDashboard.Format(PlaytestData.Store)+"\n"+TutorialDashboard.Format(PlaytestData.Store)+(storageError==null?"":"\n"+storageError)+(exportStatus==null?"":"\nCSV: "+exportStatus);}
         if(spotlightCanvas&&spotlightCanvas.gameObject.activeSelf&&guidePlayers!=null)
         {
             for(int i=0;i<guidePlayers.Length;i++)if(guidePlayers[i]&&IsGuidedPlayer(guidePlayers[i].PlayerId)&&Vector3.Distance(guidePositions[i],guidePlayers[i].transform.position)>.05f)
             {if(guideClocks.TryGetValue(guidePlayers[i].PlayerId,out var clock))clock.NotifyActivity(Time.unscaledTime);guidePositions[i]=guidePlayers[i].transform.position;}
-            foreach(var pair in guideClocks)if(pair.Value.ShouldRepeat(Time.unscaledTime)){RepeatHandDemo(pair.Key);DemonstrationRepeated?.Invoke(pair.Key);}
+            foreach(var pair in guideClocks)if(handDemonstrations&&pair.Value.ShouldRepeat(Time.unscaledTime)){RepeatHandDemo(pair.Key);DemonstrationRepeated?.Invoke(pair.Key);}
             UpdateSpots();
         }
     }
@@ -138,14 +142,20 @@ public sealed class PlaytestUI : MonoBehaviour
             float emphasis=guideClocks.TryGetValue(target.Player,out var timing)?timing.Emphasis(Time.unscaledTime):0;
             if(hands[i])
             {
-                float elapsed=Time.unscaledTime-(handStarts.TryGetValue(target.Player,out float started)?started:Time.unscaledTime);hands[i].gameObject.SetActive(elapsed<1.8f);
+                float elapsed=Time.unscaledTime-(handStarts.TryGetValue(target.Player,out float started)?started:Time.unscaledTime);hands[i].gameObject.SetActive(handDemonstrations&&elapsed<1.8f);
                 // The fingertip lands at the actual target center; movement holds longer than a jump tap.
                 float phase=Mathf.Clamp01(elapsed/.55f);float press=Mathf.Sin(phase*Mathf.PI*.5f);
                 float release=target.Tap?.9f:1.4f;
                 float lift=elapsed>release?Mathf.Clamp01((elapsed-release)/.4f)*55:0;
                 hands[i].anchorMin=hands[i].anchorMax=Vector2.one*.5f;
-                hands[i].anchoredPosition=rect.center+new Vector2(22,-52-(1-press)*65-lift);
                 hands[i].sizeDelta=new Vector2(130,150)*(1+.12f*emphasis);
+                // Point down from above for bottom-edge controls, keeping the entire hand on screen.
+                bool fromAbove=rect.center.y-root.rect.yMin<190*(1+.12f*emphasis);
+                var icon=hands[i].GetComponent<VisualIcon>();float rotation=fromAbove?180:0;
+                if(icon.Rotation!=rotation){icon.Rotation=rotation;icon.SetVerticesDirty();}
+                float sign=fromAbove?-1:1;
+                var fingertip=new Vector2(-.06f,.40f)*Mathf.Min(hands[i].sizeDelta.x,hands[i].sizeDelta.y)*sign;
+                hands[i].anchoredPosition=rect.center-fingertip-Vector2.up*sign*((1-press)*65+lift);
             }
             rings[i].anchorMin=rings[i].anchorMax=Vector2.one*.5f;rings[i].anchoredPosition=rect.center;rings[i].sizeDelta=new Vector2(Mathf.Max(rect.width,rect.height),Mathf.Max(rect.width,rect.height));rings[i].localScale=Vector3.one*(1f+(.05f+.025f*emphasis)*Mathf.Sin(Time.unscaledTime*3));
             arrows[i].anchorMin=arrows[i].anchorMax=Vector2.one*.5f;arrows[i].anchoredPosition=new Vector2(rect.center.x,rect.yMax+55+9*Mathf.Sin(Time.unscaledTime*3));arrows[i].sizeDelta=new Vector2(95,95)*(1+.12f*emphasis);
@@ -184,8 +194,8 @@ public sealed class PlaytestUI : MonoBehaviour
     {var rect=Rect(name,parent,min,max);var icon=rect.gameObject.AddComponent<VisualIcon>();icon.shape=shape;icon.color=color;icon.raycastTarget=false;return rect;}
     void Button(string name,Transform parent,Vector2 min,Vector2 max,Color color,VisualIcon.Shape shape,UnityAction action)
     {var rect=Box(name,parent,min,max,color);var image=rect.GetComponent<Image>();image.raycastTarget=true;var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;button.navigation=new Navigation{mode=Navigation.Mode.None};button.onClick.AddListener(action);Icon("Icon",rect,new Vector2(.15f,.12f),new Vector2(.85f,.88f),shape,Color.white);}
-    void AdultButton(string label,Transform parent,Vector2 min,Vector2 max,UnityAction action)
-    {var rect=Box(label,parent,min,max,ink);var image=rect.GetComponent<Image>();image.raycastTarget=true;var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;button.navigation=new Navigation{mode=Navigation.Mode.None};button.onClick.AddListener(action);var text=AdultText(rect,label,new Vector2(.02f,.02f),new Vector2(.98f,.98f));text.color=Color.white;}
+    UnityEngine.UI.Button AdultButton(string label,Transform parent,Vector2 min,Vector2 max,UnityAction action)
+    {var rect=Box(label,parent,min,max,ink);var image=rect.GetComponent<Image>();image.raycastTarget=true;var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;button.navigation=new Navigation{mode=Navigation.Mode.None};button.onClick.AddListener(action);var text=AdultText(rect,label,new Vector2(.02f,.02f),new Vector2(.98f,.98f));text.color=Color.white;return button;}
     TMP_Text AdultText(Transform parent,string content,Vector2 min,Vector2 max)
     {var rect=Rect("Adult-only data",parent,min,max);var text=rect.gameObject.AddComponent<TextMeshProUGUI>();text.text=content;text.fontSize=28;text.enableAutoSizing=true;text.fontSizeMin=16;text.fontSizeMax=28;text.alignment=TextAlignmentOptions.Center;text.color=ink;text.raycastTarget=false;return text;}
     static RectTransform Rect(string name,Transform parent,Vector2 min,Vector2 max)

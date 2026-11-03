@@ -13,6 +13,7 @@ public sealed class GameManager : MonoBehaviour
     [Tooltip("Give the other player time to join before accepting a partial finish.")]
     [SerializeField, Min(0f)] private float partialCompletionGraceSeconds = 6f;
 
+    private LevelAssistance assistance;
     private CooperationTracker tracker;
     private CooperationHints hints;
     private PlaytestUI ui;
@@ -27,7 +28,7 @@ public sealed class GameManager : MonoBehaviour
     public bool IsTransitioning => transitionPending;
     public CooperationTracker Tracker => tracker;
     public int AttemptNumber => attempt?.Number ?? 0;
-    public float Score => tracker?.Progress?.Score ?? 0f;
+    public float Score => assistance?assistance.Score:tracker?.Progress?.Score ?? 0f;
 
     private void Start()
     {
@@ -44,6 +45,7 @@ public sealed class GameManager : MonoBehaviour
         hints.Initialize(this);
         ui.Initialize(this, winSequence);
         GetComponent<TutorialManager>()?.Initialize(this);
+        assistance=GetComponent<LevelAssistance>();if(!assistance)assistance=gameObject.AddComponent<LevelAssistance>();assistance.Initialize(this);
     }
 
     private void Update()
@@ -83,6 +85,7 @@ public sealed class GameManager : MonoBehaviour
     {
         Log(type, playerId, "gameplay_collider", target);
         hints.NotifyProgress();
+        assistance?.Progress(type+":"+target,playerId);
     }
 
     public void CompleteLevel()
@@ -96,11 +99,19 @@ public sealed class GameManager : MonoBehaviour
         FinishLevel();
     }
 
+    public void CompleteWithAssistance()
+    {
+        if(levelCompleted||transitionPending||tracker==null)return;
+        // Explicit fallback: no fabricated star arrivals or cooperative credits.
+        GetComponent<TutorialManager>()?.EndForAssistedCompletion();
+        FinishLevel();
+    }
+
     private void FinishLevel()
     {
         levelCompleted = true;
         tracker.StopObserving();
-        FinishAttempt(tracker.Progress.IsFull ? "full" : "partial");
+        FinishAttempt(assistance&&assistance.Assisted?"assisted":tracker.Progress.IsFull ? "full" : "partial");
         foreach (var player in players) if (player) player.SetInputLocked(true);
         hints.Hide();
         StartCoroutine(RevealResults());
@@ -121,6 +132,7 @@ public sealed class GameManager : MonoBehaviour
             || retryRequested[playerId]) return;
         // Accept both players' requests in this frame, but reload only once.
         retryRequested[playerId] = true;
+        assistance?.NewRun();
         Log("retry_requested", playerId, attribution);
         if (!transitionPending)
         {
@@ -162,6 +174,7 @@ public sealed class GameManager : MonoBehaviour
         if (!levelCompleted || transitionPending) return;
         transitionPending = true;
         Log("continue", 0, "shared_button");
+        assistance?.NewRun();
         // The last level returns to the first enabled level without inventing a retry requester.
         SceneManager.LoadScene(HasNextLevel ? gameObject.scene.buildIndex + 1 : 0);
     }
@@ -186,8 +199,11 @@ public sealed class GameManager : MonoBehaviour
         string tutorialRunId = "", string tutorialAction = "", float tutorialElapsedSeconds = -1f, float tutorialPhaseSeconds = -1f)
     {
         var progress = tracker?.Progress;
+        if(type=="tutorial_action_learned")assistance?.Progress("tutorial:"+detail,playerId);
         PlaytestData.Store.Record(attempt, type, playerId, Score, progress?.EarnedUnits ?? 0,
-            progress?.TotalUnits ?? 0, attribution, detail, outcome,tutorialRunId,tutorialAction,tutorialElapsedSeconds,tutorialPhaseSeconds);
+            progress?.TotalUnits ?? 0, attribution, detail, outcome,tutorialRunId,tutorialAction,tutorialElapsedSeconds,tutorialPhaseSeconds,
+            completionSeconds:assistance?assistance.CompletionSeconds:0,participantMask:progress?.ParticipantMask??0,
+            assistanceStage:assistance?assistance.Stage:0,assistanceUsed:assistance&&assistance.Assisted,automaticCompletion:assistance&&assistance.Automatic);
     }
 
     private void FinishAttempt(string outcome)

@@ -12,7 +12,9 @@ public sealed class PlaytestEvent
     public int schemaVersion = 1;
     public string eventId, pairId, sessionId, attemptId, level, timestampUtc, eventType, outcome, attribution, detail;
     public int playerId, attemptNumber, playerRetryCount, playerHintCount, earnedUnits, totalUnits;
-    public float cooperationScore;
+    public float cooperationScore,completionSeconds;
+    public int participantMask,assistanceStage;
+    public bool assistanceUsed,automaticCompletion;
     public string tutorialRunId, tutorialAction;
     public float tutorialElapsedSeconds=-1f, tutorialPhaseSeconds=-1f;
 }
@@ -84,23 +86,24 @@ public sealed class PlaytestStore
         && e.playerId == playerId && e.eventType == "retry_requested");
 
     public float? PreviousScore(string level) => events.LastOrDefault(e => e.pairId == PairId && e.level == level
-        && e.eventType == "attempt_finished" && (e.outcome == "partial" || e.outcome == "full"))?.cooperationScore;
+        && e.eventType == "attempt_finished" && (e.outcome == "partial" || e.outcome == "full" || e.outcome == "assisted"))?.cooperationScore;
 
     public float? BestScore(string level)
     {
         var scores = events.Where(e => e.pairId == PairId && e.level == level && e.eventType == "attempt_finished"
-            && (e.outcome == "partial" || e.outcome == "full")).Select(e => e.cooperationScore).ToArray();
+            && (e.outcome == "partial" || e.outcome == "full" || e.outcome == "assisted")).Select(e => e.cooperationScore).ToArray();
         return scores.Length == 0 ? (float?)null : scores.Max();
     }
 
     public bool Record(PlaytestAttempt attempt, string type, int playerId, float score, int earned, int total,
         string attribution = "system", string detail = "", string outcome = "",
-        string tutorialRunId = "", string tutorialAction = "", float tutorialElapsedSeconds = -1f, float tutorialPhaseSeconds = -1f)
+        string tutorialRunId = "", string tutorialAction = "", float tutorialElapsedSeconds = -1f, float tutorialPhaseSeconds = -1f, float completionSeconds=0, int participantMask=0, int assistanceStage=0, bool assistanceUsed=false, bool automaticCompletion=false)
     {
         if (attempt == null) return false;
         if (type == "hint_requested" && CooperationProgress.ValidPlayer(playerId)) attempt.Hints[playerId]++;
         return Append(new PlaytestEvent
         {
+            completionSeconds=completionSeconds,participantMask=participantMask,assistanceStage=assistanceStage,assistanceUsed=assistanceUsed,automaticCompletion=automaticCompletion,
             pairId = attempt.PairId, attemptId = attempt.Id, level = attempt.Level, attemptNumber = attempt.Number,
             eventType = type, playerId = playerId, cooperationScore = score, earnedUnits = earned, totalUnits = total,
             playerRetryCount = RetryCount(attempt.Level, playerId) + (type == "retry_requested" ? 1 : 0),
@@ -153,14 +156,14 @@ public sealed class PlaytestStore
 
     public static string ToCsv(IEnumerable<PlaytestEvent> entries)
     {
-        var csv = new StringBuilder("schema_version,event_id,pair_id,session_id,attempt_id,level,player_id,attempt_number,event_type,outcome,cooperation_score,earned_units,total_units,player_retry_count,player_hint_count,timestamp_utc,attribution,detail,tutorial_run_id,tutorial_action,tutorial_elapsed_seconds,tutorial_phase_seconds\r\n");
+        var csv = new StringBuilder("schema_version,event_id,pair_id,session_id,attempt_id,level,player_id,attempt_number,event_type,outcome,cooperation_score,earned_units,total_units,player_retry_count,player_hint_count,timestamp_utc,attribution,detail,tutorial_run_id,tutorial_action,tutorial_elapsed_seconds,tutorial_phase_seconds,completion_seconds,participant_mask,assistance_stage,assistance_used,automatic_completion\r\n");
         foreach (var e in entries)
         {
             object[] columns = { e.schemaVersion, e.eventId, e.pairId, e.sessionId, e.attemptId, e.level, e.playerId,
                 e.attemptNumber, e.eventType, e.outcome, e.cooperationScore, e.earnedUnits, e.totalUnits,
                 e.playerRetryCount, e.playerHintCount, e.timestampUtc, e.attribution, e.detail, e.tutorialRunId, e.tutorialAction,
                 string.IsNullOrEmpty(e.tutorialRunId) || e.tutorialElapsedSeconds<0 ? "" : e.tutorialElapsedSeconds.ToString("0.###",CultureInfo.InvariantCulture),
-                string.IsNullOrEmpty(e.tutorialRunId) || e.tutorialPhaseSeconds<0 ? "" : e.tutorialPhaseSeconds.ToString("0.###",CultureInfo.InvariantCulture) };
+                string.IsNullOrEmpty(e.tutorialRunId) || e.tutorialPhaseSeconds<0 ? "" : e.tutorialPhaseSeconds.ToString("0.###",CultureInfo.InvariantCulture), e.completionSeconds,e.participantMask,e.assistanceStage,e.assistanceUsed,e.automaticCompletion };
             csv.AppendLine(string.Join(",", columns.Select(value => CsvCell(Convert.ToString(value, CultureInfo.InvariantCulture)))));
         }
         return csv.ToString();

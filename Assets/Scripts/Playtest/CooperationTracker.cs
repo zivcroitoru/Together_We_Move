@@ -52,6 +52,9 @@ public sealed class CooperationTracker : MonoBehaviour
     private void FixedUpdate()
     {
         if (!observing) return;
+        foreach(var player in players)
+            if(player&&(player.SuccessfulLeftDistance+player.SuccessfulRightDistance>.1f||player.SuccessfulJumpCount>0)&&Progress.Participate(player.PlayerId))
+                Milestone?.Invoke("player_participated",player.PlayerId,"controls");
         foreach (var crossing in crossings) Observe(crossing);
     }
 

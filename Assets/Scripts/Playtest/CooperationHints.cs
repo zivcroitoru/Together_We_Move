@@ -5,42 +5,34 @@ using UnityEngine;
 public sealed class CooperationHints : MonoBehaviour
 {
     [SerializeField, Min(1)] float requestCooldownSeconds=2;
-    [SerializeField] bool automaticHints=true;
-    [SerializeField, Min(5)] float stuckAfterSeconds=25;
     GameManager manager; PlaytestUI ui; PlayerController[] players; PressurePlate[] plates; BridgeController[] bridges;
-    float lastActivity; readonly float[] cooldown=new float[3]; Vector3[] lastPositions;
+    readonly float[] cooldown=new float[3];
     PressurePlate targetPlate, heldPlate; BridgeController targetBridge; int helperId;
     bool showing; int goalCount;TutorialManager tutorial;
-    public bool IsStuck=>Time.unscaledTime-lastActivity>=stuckAfterSeconds;
     public void Initialize(GameManager owner)
     {
         tutorial=GetComponent<TutorialManager>();manager=owner;ui=GetComponent<PlaytestUI>();players=FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         plates=FindObjectsByType<PressurePlate>(FindObjectsSortMode.None);bridges=FindObjectsByType<BridgeController>(FindObjectsSortMode.None);
-        lastPositions=new Vector3[players.Length];for(int i=0;i<players.Length;i++)lastPositions[i]=players[i].transform.position;
         NotifyProgress();
     }
-    public void NotifyProgress(){lastActivity=Time.unscaledTime;if(showing)Hide();}
+    public void NotifyProgress(){if(showing)Hide();}
     public void Hide(){showing=false;if(ui)ui.HideHint();}
     void Update()
     {
         if(!manager||manager.LevelCompleted||manager.IsTransitioning||manager.Tracker?.Progress==null||(tutorial&&tutorial.IsActive))return;
-        bool moved=false;
-        for(int i=0;i<players.Length;i++)if(players[i]&&Vector3.Distance(lastPositions[i],players[i].transform.position)>.12f){moved=true;lastPositions[i]=players[i].transform.position;}
-        if(moved)lastActivity=Time.unscaledTime;
-        if(showing)
-        {
-            if((targetPlate&&targetPlate.IsOccupied)||(heldPlate&&!heldPlate.IsOccupied)||manager.Tracker.Progress.GoalCount!=goalCount||
-                (targetBridge&&helperId!=0&&manager.Tracker.HasAssisted(targetBridge,helperId)))NotifyProgress();
-        }
-        else if(automaticHints&&IsStuck){ShowPlan();manager.Log("automatic_hint_shown",0,"system",PlanId());lastActivity=Time.unscaledTime;}
+        if(showing&&((targetPlate&&targetPlate.IsOccupied)||(heldPlate&&!heldPlate.IsOccupied)||manager.Tracker.Progress.GoalCount!=goalCount||
+            (targetBridge&&helperId!=0&&manager.Tracker.HasAssisted(targetBridge,helperId))))NotifyProgress();
+        // LevelAssistance owns automatic timing; movement and hint requests never reset it.
     }
+    public void ShowAutomatic(bool hand){ui.SetHandDemonstrations(hand);ShowPlan();}
     public void RequestHint(int playerId,string attribution)
     {
         if(!manager||manager.LevelCompleted||manager.IsTransitioning||!CooperationProgress.ValidPlayer(playerId)||Time.unscaledTime<cooldown[playerId])return;
         cooldown[playerId]=Time.unscaledTime+requestCooldownSeconds;
+        ui.SetHandDemonstrations(true);
         if(tutorial&&tutorial.IsActive)
         {tutorial.RequestHint(playerId,attribution);return;}
-        ShowPlan();manager.Log("hint_requested",playerId,attribution,PlanId());lastActivity=Time.unscaledTime;
+        ShowPlan();manager.Log("hint_requested",playerId,attribution,PlanId());
     }
     string PlanId()=>targetPlate?"hold_plate:"+CooperationTracker.ObjectId(targetPlate.transform):targetBridge?"cross_bridge:"+CooperationTracker.ObjectId(targetBridge.transform):"join_star";
     bool Allowed(PressurePlate plate,PlayerController player)=>plate.Allowed==PressurePlate.AllowedPlayer.Any||(int)plate.Allowed==player.PlayerId;
