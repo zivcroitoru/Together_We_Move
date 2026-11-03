@@ -99,6 +99,14 @@ public sealed class TutorialManager : MonoBehaviour
         {
             var step=steps[i];if(step.phase!=phase)continue;any=true;
             if(progress.HasLearned(phase,step.player.PlayerId))continue;
+            // Children may have crossed the bridge while learning the controls.
+            // Do not point them back toward a plate that is now behind both of them.
+            if(phase>=3 && BridgeAlreadyPassed(step))
+            {
+                if(progress.Learn(phase,step.player.PlayerId))
+                    Metric("tutorial_obsolete_objective_skipped",step.player.PlayerId,"system",step.id);
+                continue;
+            }
             bool first=FirstSuccess(i);
             if(first&&progress.MarkFirstInput(phase,step.player.PlayerId))Metric("tutorial_first_success",step.player.PlayerId,"gameplay",step.id);
             bool learned=phase>=3?objectiveEvidence.Contains(step.id):Performed(i);
@@ -137,6 +145,31 @@ public sealed class TutorialManager : MonoBehaviour
         return ObjectivePerformed(step);
     }
     static float Travel(Step step)=>step.direction<0?step.player.SuccessfulLeftDistance:step.player.SuccessfulRightDistance;
+
+    // Only retire plate/crossing instructions when both children are safely past
+    // the corresponding bridge. This does not award cooperation-score credit.
+    bool BridgeAlreadyPassed(Step step)
+    {
+        if(step.action!=Action.OccupyPlate && step.action!=Action.HelpPartnerCross)return false;
+        var bridge=step.bridge ? step.bridge : step.plate ? step.plate.Bridge : null;
+        if(!bridge || !bridge.Surface || players==null)return false;
+
+        var surface=bridge.Surface;
+        float end=surface.transform.TransformPoint(surface.offset).x
+            + surface.size.x*Mathf.Abs(surface.transform.lossyScale.x)*.5f;
+        // A plate located after the bridge may still be the next task.
+        if(step.action==Action.OccupyPlate && step.plate.transform.position.x>=end)return false;
+        int present=0;
+        foreach(var player in players)
+        {
+            if(!player || !CooperationProgress.ValidPlayer(player.PlayerId))continue;
+            present |= 1 << (player.PlayerId-1);
+            if(!player.IsGrounded || !player.BodyCollider || player.BodyCollider.bounds.min.x<=end+.05f)
+                return false;
+        }
+        return present==3;
+    }
+
     bool ObjectivePerformed(Step step)
     {
         if(step.action==Action.OccupyPlate)return step.plate.ContainsPlayer(step.player);
@@ -162,7 +195,14 @@ public sealed class TutorialManager : MonoBehaviour
             targets.Add(step.control&&actor==step.player?PlaytestUI.HintSpot.ExactControl(step.control,actor.PlayerId,step.action==Action.Jump):PlaytestUI.HintSpot.Control(actor.PlayerId,control));
             key+=":"+actor.PlayerId+":"+control;
         }
-        if(!force&&guideKey==key)return;guideKey=key;
+        if(targets.Count==0)
+        {
+            guideKey=null;
+            ui.HideHint();
+            return;
+        }
+        if(!force&&guideKey==key)return;
+        guideKey=key;
         ui.ShowVisualHint(targets,repeatHandAfterSeconds,progress.RunId+":"+phase);
     }
     public void RequestHint(int playerId,string attribution)

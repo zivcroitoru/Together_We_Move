@@ -16,7 +16,7 @@ public sealed class PlaytestUI : MonoBehaviour
     [SerializeField,Range(.25f,.85f)] float hintDimOpacity=.62f;
     GameManager manager;WinSequence celebration;RectTransform hud,panel,card,fill;
     CanvasGroup panelGroup;Sprite rounded;Image[] avatars=new Image[2];RectTransform[] stars=new RectTransform[3];
-    RectTransform researcher;UnityEngine.UI.Button newPairButton;TMP_Text researcherStatus;string storageError,exportStatus;
+    RectTransform researcher;UnityEngine.UI.Button newPairButton;TMP_Text researcherStatus,levelSummary,blueSummary,redSummary;string storageError,exportStatus;
     Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> arrows=new(),hands=new();
     readonly Dictionary<int,GuidanceTiming> guideClocks=new();readonly Dictionary<int,float> handStarts=new();
     string guidanceContext;float dashboardNextUpdate;PlayerController[] guidePlayers;Vector3[] guidePositions;
@@ -64,10 +64,22 @@ public sealed class PlaytestUI : MonoBehaviour
         Button("Blue Replay",card,new Vector2(.10f,.06f),new Vector2(.34f,.29f),blue,VisualIcon.Shape.Replay,()=>manager.RequestRetry(1));
         Button("Next Level",card,new Vector2(.39f,.06f),new Vector2(.61f,.29f),new Color(.22f,.56f,.29f),VisualIcon.Shape.Arrow,manager.Continue);
         Button("Red Replay",card,new Vector2(.66f,.06f),new Vector2(.90f,.29f),red,VisualIcon.Shape.Replay,()=>manager.RequestRetry(2));
-        researcher=Box("Researcher tools (F8)",canvas.transform,new Vector2(.08f,.06f),new Vector2(.92f,.74f),Color.white);
-        AdultButton("Export CSV",researcher,new Vector2(.02f,.90f),new Vector2(.48f,.98f),()=>{var path=PlaytestData.Store.ExportCsv();exportStatus=path??PlaytestData.Store.LastError;dashboardNextUpdate=0;});
-        newPairButton=AdultButton("New anonymous pair",researcher,new Vector2(.52f,.90f),new Vector2(.98f,.98f),manager.StartNewPair);
-        researcherStatus=AdultText(researcher,"",new Vector2(.02f,.02f),new Vector2(.98f,.87f));researcher.gameObject.SetActive(false);
+        // Researcher-only dashboard. Keep it separate from the children's UI.
+        researcher=Box("Researcher tools (F8)",canvas.transform,new Vector2(.035f,.045f),new Vector2(.965f,.955f),new Color(.945f,.957f,.975f));
+        AdultLabel(researcher,"PLAYTEST DASHBOARD",new Vector2(.035f,.915f),new Vector2(.66f,.975f),32,ink,TextAlignmentOptions.MidlineLeft);
+        AdultButton("Close  X",researcher,new Vector2(.865f,.925f),new Vector2(.97f,.975f),()=>researcher.gameObject.SetActive(false));
+        AdultButton("Export CSV",researcher,new Vector2(.035f,.835f),new Vector2(.32f,.9f),()=>{var path=PlaytestData.Store.ExportCsv();exportStatus=path??PlaytestData.Store.LastError;dashboardNextUpdate=0;});
+        newPairButton=AdultButton("New anonymous pair",researcher,new Vector2(.34f,.835f),new Vector2(.68f,.9f),manager.StartNewPair);
+        AdultLabel(researcher,"F8 to toggle",new Vector2(.72f,.84f),new Vector2(.96f,.89f),21,new Color(.40f,.45f,.52f),TextAlignmentOptions.MidlineRight);
+
+        var levelCard=DashboardCard("LEVEL RESULTS",researcher,new Vector2(.035f,.45f),new Vector2(.965f,.815f),ink);
+        levelSummary=AdultLabel(levelCard,"",new Vector2(.035f,.07f),new Vector2(.965f,.79f),23,ink,TextAlignmentOptions.TopLeft);
+        var blueCard=DashboardCard("PLAYER 1  /  BLUE",researcher,new Vector2(.035f,.13f),new Vector2(.49f,.43f),blue);
+        blueSummary=AdultLabel(blueCard,"",new Vector2(.045f,.05f),new Vector2(.955f,.78f),22,ink,TextAlignmentOptions.TopLeft);
+        var redCard=DashboardCard("PLAYER 2  /  RED",researcher,new Vector2(.51f,.13f),new Vector2(.965f,.43f),red);
+        redSummary=AdultLabel(redCard,"",new Vector2(.045f,.05f),new Vector2(.955f,.78f),22,ink,TextAlignmentOptions.TopLeft);
+        researcherStatus=AdultLabel(researcher,"",new Vector2(.04f,.025f),new Vector2(.96f,.11f),18,new Color(.35f,.4f,.47f),TextAlignmentOptions.TopLeft);
+        researcher.gameObject.SetActive(false);
         var developerCanvas=researcher.gameObject.AddComponent<Canvas>();developerCanvas.overrideSorting=true;developerCanvas.sortingOrder=500;researcher.gameObject.AddComponent<GraphicRaycaster>();
         card.gameObject.SetActive(false);panel.SetAsLastSibling();
         var overlay=new GameObject("Visual Hint Overlay",typeof(Canvas),typeof(CanvasScaler));overlay.transform.SetParent(transform,false);
@@ -81,7 +93,7 @@ public sealed class PlaytestUI : MonoBehaviour
         if(!manager)return;
         if(newPairButton)newPairButton.interactable=manager.LevelCompleted&&!manager.IsTransitioning;
         if(Keyboard.current!=null&&Keyboard.current.f8Key.wasPressedThisFrame ){researcher.gameObject.SetActive(!researcher.gameObject.activeSelf);dashboardNextUpdate=0;}
-        if(researcher.gameObject.activeSelf&&Time.unscaledTime>=dashboardNextUpdate){dashboardNextUpdate=Time.unscaledTime+.25f;researcherStatus.text=LevelPlaytestDashboard.Format(PlaytestData.Store)+"\n"+TutorialDashboard.Format(PlaytestData.Store)+(storageError==null?"":"\n"+storageError)+(exportStatus==null?"":"\nCSV: "+exportStatus);}
+        if(researcher.gameObject.activeSelf&&Time.unscaledTime>=dashboardNextUpdate){dashboardNextUpdate=Time.unscaledTime+.25f;RefreshResearcherDashboard();}
         if(spotlightCanvas&&spotlightCanvas.gameObject.activeSelf&&guidePlayers!=null)
         {
             for(int i=0;i<guidePlayers.Length;i++)if(guidePlayers[i]&&IsGuidedPlayer(guidePlayers[i].PlayerId)&&Vector3.Distance(guidePositions[i],guidePlayers[i].transform.position)>.05f)
@@ -90,8 +102,63 @@ public sealed class PlaytestUI : MonoBehaviour
             UpdateSpots();
         }
     }
+    // Adapt the existing analytics formatters to compact, readable cards.
+    // No new analytics model or hardcoded statistics are introduced.
+    void RefreshResearcherDashboard()
+    {
+        // The footer is the tutorial overview; player details have their own cards.
+        string levels = LevelPlaytestDashboard.Format(PlaytestData.Store) ?? "";
+        string tutorial = TutorialDashboard.Format(PlaytestData.Store) ?? "";
+        if (levelSummary) levelSummary.text = levels.Trim();
+
+        const string blueHeader = "Player 1 (Blue)";
+        const string redHeader = "Player 2 (Red)";
+        int blueStart = tutorial.IndexOf(blueHeader, System.StringComparison.OrdinalIgnoreCase);
+        int redStart = tutorial.IndexOf(redHeader, System.StringComparison.OrdinalIgnoreCase);
+        string overview;
+        if (blueStart >= 0 && redStart > blueStart)
+        {
+            if (blueSummary) blueSummary.text = tutorial.Substring(
+                blueStart + blueHeader.Length,
+                redStart - blueStart - blueHeader.Length).Trim();
+            if (redSummary) redSummary.text = tutorial.Substring(redStart + redHeader.Length).Trim();
+            overview = tutorial.Substring(0, blueStart).Trim();
+        }
+        else
+        {
+            if (blueSummary) blueSummary.text = "No player 1 tutorial data yet";
+            if (redSummary) redSummary.text = "No player 2 tutorial data yet";
+            overview = tutorial;
+        }
+
+        if (researcherStatus)
+            researcherStatus.text = overview +
+                (string.IsNullOrEmpty(storageError) ? "" : "\nStorage: " + storageError) +
+                (string.IsNullOrEmpty(exportStatus) ? "" : "\nCSV: " + exportStatus);
+    }
+
+    RectTransform DashboardCard(string heading,Transform parent,Vector2 min,Vector2 max,Color accent)
+    {
+        var cardRect=Box(heading,parent,min,max,Color.white);
+        var stripe=Box("Accent",cardRect,new Vector2(0,0),new Vector2(.008f,1),accent);
+        AdultLabel(cardRect,heading,new Vector2(.035f,.80f),new Vector2(.965f,.96f),24,accent,TextAlignmentOptions.MidlineLeft);
+        return cardRect;
+    }
+
+    TMP_Text AdultLabel(Transform parent,string content,Vector2 min,Vector2 max,float fontSize,Color color,TextAlignmentOptions alignment)
+    {
+        var rect=Rect("Dashboard text",parent,min,max);
+        var label=rect.gameObject.AddComponent<TextMeshProUGUI>();
+        label.text=content;label.fontSize=fontSize;label.enableAutoSizing=true;
+        label.fontSizeMin=14;label.fontSizeMax=fontSize;label.alignment=alignment;
+        label.color=color;label.raycastTarget=false;label.enableWordWrapping=true;
+        return label;
+    }
+
     public void ShowVisualHint(List<HintSpot> targets,float repeatAfterSeconds=5f,string contextKey=null)
     {
+        // Avoid a lingering dark overlay after the last tutorial objective disappears.
+        if(targets==null || targets.Count==0){HideHint();return;}
         bool preserve=contextKey!=null&&contextKey==guidanceContext;
         var previousClocks=preserve?new Dictionary<int,GuidanceTiming>(guideClocks):null;
         var previousStarts=preserve?new Dictionary<int,float>(handStarts):null;
@@ -164,7 +231,10 @@ public sealed class PlaytestUI : MonoBehaviour
     public void HideHint()
     {
         if(spotlightCanvas)spotlightCanvas.gameObject.SetActive(false);
-        foreach(var arrow in arrows)if(arrow)Destroy(arrow.gameObject);foreach(var hand in hands)if(hand)Destroy(hand.gameObject);arrows.Clear();hands.Clear();spots.Clear();guideClocks.Clear();handStarts.Clear();guidanceContext=null;
+        // Disable visuals now, rather than waiting until Unity destroys them at frame end.
+        foreach(var arrow in arrows)if(arrow){arrow.gameObject.SetActive(false);Destroy(arrow.gameObject);}
+        foreach(var hand in hands)if(hand){hand.gameObject.SetActive(false);Destroy(hand.gameObject);}
+        arrows.Clear();hands.Clear();spots.Clear();guideClocks.Clear();handStarts.Clear();guidanceContext=null;
     }
     public void ShowResults(bool full,float score,float? previous,float? best)
     {

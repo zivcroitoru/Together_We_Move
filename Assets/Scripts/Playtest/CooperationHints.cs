@@ -21,7 +21,8 @@ public sealed class CooperationHints : MonoBehaviour
     {
         if(!manager||manager.LevelCompleted||manager.IsTransitioning||manager.Tracker?.Progress==null||(tutorial&&tutorial.IsActive))return;
         if(showing&&((targetPlate&&targetPlate.IsOccupied)||(heldPlate&&!heldPlate.IsOccupied)||manager.Tracker.Progress.GoalCount!=goalCount||
-            (targetBridge&&helperId!=0&&manager.Tracker.HasAssisted(targetBridge,helperId))))NotifyProgress();
+            (targetBridge&&helperId!=0&&manager.Tracker.HasAssisted(targetBridge,helperId))||
+            (targetBridge&&BothPlayersPastBridge(targetBridge))))NotifyProgress();
         // LevelAssistance owns automatic timing; movement and hint requests never reset it.
     }
     public void ShowAutomatic(bool hand){ui.SetHandDemonstrations(hand);ShowPlan();}
@@ -34,6 +35,29 @@ public sealed class CooperationHints : MonoBehaviour
         {tutorial.RequestHint(playerId,attribution);return;}
         ShowPlan();manager.Log("hint_requested",playerId,attribution,PlanId());
     }
+    // A bridge is no longer a useful hint once BOTH players are safely on its far bank.
+    // Keep the original two-player task when one child is still behind.
+    bool BothPlayersPastBridge(BridgeController bridge)
+    {
+        if(!bridge || !bridge.Surface || players==null)return false;
+        float end=BridgeRightEdge(bridge);
+        int present=0;
+        foreach(var player in players)
+        {
+            if(!player || !CooperationProgress.ValidPlayer(player.PlayerId))continue;
+            present |= 1 << (player.PlayerId-1);
+            if(!player.IsGrounded || !player.BodyCollider || player.BodyCollider.bounds.min.x<=end+.05f)
+                return false;
+        }
+        return present==3;
+    }
+    static float BridgeRightEdge(BridgeController bridge)
+    {
+        var surface=bridge.Surface;
+        return surface.transform.TransformPoint(surface.offset).x
+            + surface.size.x*Mathf.Abs(surface.transform.lossyScale.x)*.5f;
+    }
+
     string PlanId()=>targetPlate?"hold_plate:"+CooperationTracker.ObjectId(targetPlate.transform):targetBridge?"cross_bridge:"+CooperationTracker.ObjectId(targetBridge.transform):"join_star";
     bool Allowed(PressurePlate plate,PlayerController player)=>plate.Allowed==PressurePlate.AllowedPlayer.Any||(int)plate.Allowed==player.PlayerId;
     void ShowPlan()
@@ -45,8 +69,10 @@ public sealed class CooperationHints : MonoBehaviour
         foreach(var bridge in bridges)
         {
             if(!bridge||!bridge.Surface)continue;var surface=bridge.Surface;
-            float center=surface.transform.TransformPoint(surface.offset).x;float end=center+surface.size.x*surface.transform.lossyScale.x*.5f;
-            if(lagging.transform.position.x>end+.6f)continue;
+            float center=surface.transform.TransformPoint(surface.offset).x;
+            float end=BridgeRightEdge(bridge);
+            // The player has cleared this obstacle: guide toward the next goal instead.
+            if(lagging.BodyCollider && lagging.BodyCollider.bounds.min.x>end+.05f)continue;
             float distance=Mathf.Abs(center-lagging.transform.position.x);if(distance<nearest){nearest=distance;targetBridge=bridge;}
         }
         var spots=new List<PlaytestUI.HintSpot>();
