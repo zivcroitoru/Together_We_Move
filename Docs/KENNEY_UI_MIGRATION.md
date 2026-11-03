@@ -1,0 +1,3 @@
+Imported official UI Pack and Game Icons assets; Adventure pack downloaded and inspected in Logs/Kenney/Adventure. Runtime VisualIcon now renders imported sprites instead of drawing geometry. Shared runtime panels use sliced Kenney backgrounds. Existing scene controls reuse the earlier Kenney controls.
+Substitutions: question icon for hint/lightbulb; upward pointer arrow for hand; checkmark for smile. These require child-usability review. Game Icons sprites are original 100px 2x assets; arrows/stars/rings/panel use vector rasterizations. No AI or procedural icon artwork.
+INCOMPLETE QA: scene/prefab-wide audit, reusable styled prefab, touch/hold/simultaneous input and native visual verification remain. Do not treat this as a completed full-project migration.

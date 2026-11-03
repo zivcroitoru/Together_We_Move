@@ -17,7 +17,7 @@ public sealed class PlaytestUI : MonoBehaviour
     GameManager manager;WinSequence celebration;RectTransform hud,panel,card,fill;
     CanvasGroup panelGroup;Sprite rounded;Image[] avatars=new Image[2];RectTransform[] stars=new RectTransform[3];
     RectTransform researcher;UnityEngine.UI.Button newPairButton;TMP_Text researcherStatus;string storageError,exportStatus;
-    Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> rings=new(),arrows=new(),hands=new();
+    Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> arrows=new(),hands=new();
     readonly Dictionary<int,GuidanceTiming> guideClocks=new();readonly Dictionary<int,float> handStarts=new();
     string guidanceContext;float dashboardNextUpdate;PlayerController[] guidePlayers;Vector3[] guidePositions;
     public event System.Action<int> DemonstrationRepeated;
@@ -105,11 +105,9 @@ public sealed class PlaytestUI : MonoBehaviour
         for(int i=0;i<guidePlayers.Length;i++)guidePositions[i]=guidePlayers[i].transform.position;
         foreach(var target in spots)
         {
-            var ring=Icon("Pulse highlight",spotlightCanvas.transform,Vector2.zero,Vector2.zero,VisualIcon.Shape.Ring,target.Player==1?blue:red);rings.Add(ring);
             var arrow=Icon("Look here",spotlightCanvas.transform,Vector2.zero,Vector2.zero,VisualIcon.Shape.Arrow,new Color(1,.86f,.20f));arrow.GetComponent<VisualIcon>().Rotation=-90;arrows.Add(arrow);
             RectTransform hand=null;
-            if(!string.IsNullOrEmpty(target.Button)||target.ControlRect)
-                hand=Icon("Demonstrating hand",spotlightCanvas.transform,Vector2.zero,Vector2.zero,VisualIcon.Shape.Hand,Color.white);
+            // Keep the yellow indicator; do not cover the target with a second pointer.
             hands.Add(hand);
         }
         UpdateSpots();
@@ -129,7 +127,7 @@ public sealed class PlaytestUI : MonoBehaviour
             if(!string.IsNullOrEmpty(target.Button)||target.ControlRect)
             {
                 var control=target.ControlRect?target.ControlRect:canvas.transform.Find((target.Player==1?"P1_Controls/":"P2_Controls/")+target.Button) as RectTransform;
-                if(!control){rings[i].gameObject.SetActive(false);arrows[i].gameObject.SetActive(false);if(hands[i])hands[i].gameObject.SetActive(false);continue;}
+                if(!control){arrows[i].gameObject.SetActive(false);if(hands[i])hands[i].gameObject.SetActive(false);continue;}
                 var corners=new Vector3[4];control.GetWorldCorners(corners);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(root,RectTransformUtility.WorldToScreenPoint(canvas.renderMode==RenderMode.ScreenSpaceOverlay?null:canvas.worldCamera,corners[0]),null,out var a);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(root,RectTransformUtility.WorldToScreenPoint(canvas.renderMode==RenderMode.ScreenSpaceOverlay?null:canvas.worldCamera,corners[2]),null,out var b);rect=UnityEngine.Rect.MinMaxRect(a.x-16,a.y-16,b.x+16,b.y+16);
@@ -157,7 +155,6 @@ public sealed class PlaytestUI : MonoBehaviour
                 var fingertip=new Vector2(-.06f,.40f)*Mathf.Min(hands[i].sizeDelta.x,hands[i].sizeDelta.y)*sign;
                 hands[i].anchoredPosition=rect.center-fingertip-Vector2.up*sign*((1-press)*65+lift);
             }
-            rings[i].anchorMin=rings[i].anchorMax=Vector2.one*.5f;rings[i].anchoredPosition=rect.center;rings[i].sizeDelta=new Vector2(Mathf.Max(rect.width,rect.height),Mathf.Max(rect.width,rect.height));rings[i].localScale=Vector3.one*(1f+(.05f+.025f*emphasis)*Mathf.Sin(Time.unscaledTime*3));
             arrows[i].anchorMin=arrows[i].anchorMax=Vector2.one*.5f;arrows[i].anchoredPosition=new Vector2(rect.center.x,rect.yMax+55+9*Mathf.Sin(Time.unscaledTime*3));arrows[i].sizeDelta=new Vector2(95,95)*(1+.12f*emphasis);
         }
         float strongest=0;foreach(var clock in guideClocks.Values)strongest=Mathf.Max(strongest,clock.Emphasis(Time.unscaledTime));
@@ -167,7 +164,7 @@ public sealed class PlaytestUI : MonoBehaviour
     public void HideHint()
     {
         if(spotlightCanvas)spotlightCanvas.gameObject.SetActive(false);
-        foreach(var ring in rings)if(ring)Destroy(ring.gameObject);foreach(var arrow in arrows)if(arrow)Destroy(arrow.gameObject);foreach(var hand in hands)if(hand)Destroy(hand.gameObject);rings.Clear();arrows.Clear();hands.Clear();spots.Clear();guideClocks.Clear();handStarts.Clear();guidanceContext=null;
+        foreach(var arrow in arrows)if(arrow)Destroy(arrow.gameObject);foreach(var hand in hands)if(hand)Destroy(hand.gameObject);arrows.Clear();hands.Clear();spots.Clear();guideClocks.Clear();handStarts.Clear();guidanceContext=null;
     }
     public void ShowResults(bool full,float score,float? previous,float? best)
     {
