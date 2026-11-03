@@ -4,7 +4,7 @@ Run from any directory: python Tools/RenderKenneyControls.py
 """
 from pathlib import Path
 import resvg_py
-root=Path(__file__).resolve().parents[1]/'Assets/Art/KenneyControls'
+root=Path(__file__).resolve().parents[1]/'Assets/SharedUI/Sprites/Controls'
 for source in sorted((root/'Source').glob('*.svg')):
     (root/(source.stem+'.png')).write_bytes(resvg_py.svg_to_bytes(svg_path=str(source),width=512,height=512))
     print(source.stem)

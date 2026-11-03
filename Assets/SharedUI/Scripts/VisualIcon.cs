@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>Compatibility adapter for existing icon callers, using only imported Kenney sprites.</summary>
+[ExecuteAlways]
 [RequireComponent(typeof(CanvasRenderer))]
 public sealed class VisualIcon : Image
 {
@@ -10,11 +11,14 @@ public sealed class VisualIcon : Image
     public float Rotation;
     static readonly Sprite[] artwork=new Sprite[7];
     Shape applied=(Shape)(-1);float angle=float.NaN;
-    void LateUpdate()
+    protected override void OnEnable(){base.OnEnable();RefreshArtwork();}
+    void LateUpdate()=>RefreshArtwork();
+    [ContextMenu("Refresh Artwork")]
+    public void RefreshArtwork()
     {
         if(applied!=shape||!sprite)
         {
-            int index=(int)shape;
+            int index=Mathf.Clamp((int)shape,0,artwork.Length-1);
             if(!artwork[index])artwork[index]=Resources.Load<Sprite>("KenneyUI/"+shape);
             sprite=artwork[index];preserveAspect=true;applied=shape;
         }

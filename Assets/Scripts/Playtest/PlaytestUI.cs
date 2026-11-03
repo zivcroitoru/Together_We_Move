@@ -1,6 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using SharedUI;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -15,6 +15,7 @@ public sealed class PlaytestUI : MonoBehaviour
     [SerializeField,Min(.1f)] float scoreAnimationSeconds=1.25f;
     [SerializeField,Range(.25f,.85f)] float hintDimOpacity=.62f;
     GameManager manager;WinSequence celebration;RectTransform hud,panel,card,fill;
+    UIProgress teamworkProgress;
     CanvasGroup panelGroup;Sprite rounded;Image[] avatars=new Image[2];RectTransform[] stars=new RectTransform[3];
     RectTransform researcher;UnityEngine.UI.Button newPairButton;TMP_Text researcherStatus,levelSummary,blueSummary,redSummary;string storageError,exportStatus;
     Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> arrows=new(),hands=new();
@@ -59,8 +60,9 @@ public sealed class PlaytestUI : MonoBehaviour
             foreach(var p in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))if(p.PlayerId==i+1){var sr=p.GetComponentInChildren<SpriteRenderer>();if(sr){avatars[i].sprite=sr.sprite;avatars[i].color=sr.color;}}
             Icon("Happy",back,new Vector2(.57f,-.06f),new Vector2(1.1f,.47f),VisualIcon.Shape.Smile,new Color(1,.83f,.20f));
         }
-        var track=Box("Teamwork bar",card,new Vector2(.12f,.36f),new Vector2(.88f,.47f),new Color(.83f,.87f,.85f));
-        fill=Box("Earned teamwork",track,Vector2.zero,new Vector2(0,1),progressColor);
+        var track=UIFactory.Create("ProgressBar","Teamwork bar",card,new Vector2(.12f,.36f),new Vector2(.88f,.47f));
+        teamworkProgress=track.GetComponent<UIProgress>();teamworkProgress.duration=scoreAnimationSeconds;teamworkProgress.indicators=stars;teamworkProgress.SetValue(0);
+        fill=teamworkProgress.fill;fill.name="Earned teamwork";fill.GetComponent<Image>().color=progressColor;
         Button("Blue Replay",card,new Vector2(.10f,.06f),new Vector2(.34f,.29f),blue,VisualIcon.Shape.Replay,()=>manager.RequestRetry(1));
         Button("Next Level",card,new Vector2(.39f,.06f),new Vector2(.61f,.29f),new Color(.22f,.56f,.29f),VisualIcon.Shape.Arrow,manager.Continue);
         Button("Red Replay",card,new Vector2(.66f,.06f),new Vector2(.90f,.29f),red,VisualIcon.Shape.Replay,()=>manager.RequestRetry(2));
@@ -147,8 +149,8 @@ public sealed class PlaytestUI : MonoBehaviour
 
     TMP_Text AdultLabel(Transform parent,string content,Vector2 min,Vector2 max,float fontSize,Color color,TextAlignmentOptions alignment)
     {
-        var rect=Rect("Dashboard text",parent,min,max);
-        var label=rect.gameObject.AddComponent<TextMeshProUGUI>();
+        var rect=UIFactory.Create("Label","Dashboard text",parent,min,max);
+        var label=rect.GetComponent<TextMeshProUGUI>();
         label.text=content;label.fontSize=fontSize;label.enableAutoSizing=true;
         label.fontSizeMin=14;label.fontSizeMax=fontSize;label.alignment=alignment;
         label.color=color;label.raycastTarget=false;label.enableWordWrapping=true;
@@ -242,29 +244,17 @@ public sealed class PlaytestUI : MonoBehaviour
         foreach(var name in new[]{"P1_Controls","P2_Controls"}){var controls=canvas.transform.Find(name);if(controls)controls.gameObject.SetActive(false);}
         card.gameObject.SetActive(true);panelGroup.blocksRaycasts=true;panelGroup.interactable=true;
         if(celebration)celebration.PlayWin();else panelGroup.alpha=1;
-        StartCoroutine(Celebrate(score));
-    }
-    IEnumerator Celebrate(float score)
-    {
-        float elapsed=0;
-        while(elapsed<scoreAnimationSeconds)
-        {
-            elapsed+=Time.unscaledDeltaTime;float t=Mathf.Clamp01(elapsed/scoreAnimationSeconds);fill.anchorMax=new Vector2(Mathf.Clamp01(score/100f)*(1-Mathf.Pow(1-t,3)),1);
-            for(int i=0;i<stars.Length;i++)stars[i].localScale=Vector3.one*(1+.12f*Mathf.Sin(t*Mathf.PI));yield return null;
-        }
-        fill.anchorMax=new Vector2(Mathf.Clamp01(score/100f),1);foreach(var star in stars)star.localScale=Vector3.one;
+        teamworkProgress.AnimateTo(score/100f);
     }
     public void ShowStorageError(string message){storageError=message;Debug.LogError("[Playtest] "+message);}
     RectTransform Box(string name,Transform parent,Vector2 min,Vector2 max,Color color)
-    {var rect=Rect(name,parent,min,max);var image=rect.gameObject.AddComponent<Image>();image.sprite=rounded;image.type=rounded?Image.Type.Sliced:Image.Type.Simple;image.color=color;image.raycastTarget=false;return rect;}
+    {return UIFactory.Box(name,parent,min,max,color);}
     RectTransform Icon(string name,Transform parent,Vector2 min,Vector2 max,VisualIcon.Shape shape,Color color)
-    {var rect=Rect(name,parent,min,max);var icon=rect.gameObject.AddComponent<VisualIcon>();icon.shape=shape;icon.color=color;icon.raycastTarget=false;return rect;}
+    {var rect=UIFactory.Create("Icon",name,parent,min,max);var icon=rect.GetComponent<VisualIcon>();icon.shape=shape;icon.color=color;icon.raycastTarget=false;return rect;}
     void Button(string name,Transform parent,Vector2 min,Vector2 max,Color color,VisualIcon.Shape shape,UnityAction action)
-    {var rect=Box(name,parent,min,max,color);var image=rect.GetComponent<Image>();image.raycastTarget=true;var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;button.navigation=new Navigation{mode=Navigation.Mode.None};button.onClick.AddListener(action);Icon("Icon",rect,new Vector2(.15f,.12f),new Vector2(.85f,.88f),shape,Color.white);}
+    {var rect=UIFactory.Create("IconButton",name,parent,min,max);rect.GetComponent<Image>().color=color;rect.GetComponent<Button>().onClick.AddListener(action);var icon=rect.GetComponentInChildren<VisualIcon>();icon.shape=shape;}
     UnityEngine.UI.Button AdultButton(string label,Transform parent,Vector2 min,Vector2 max,UnityAction action)
-    {var rect=Box(label,parent,min,max,ink);var image=rect.GetComponent<Image>();image.raycastTarget=true;var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;button.navigation=new Navigation{mode=Navigation.Mode.None};button.onClick.AddListener(action);var text=AdultText(rect,label,new Vector2(.02f,.02f),new Vector2(.98f,.98f));text.color=Color.white;return button;}
-    TMP_Text AdultText(Transform parent,string content,Vector2 min,Vector2 max)
-    {var rect=Rect("Adult-only data",parent,min,max);var text=rect.gameObject.AddComponent<TextMeshProUGUI>();text.text=content;text.fontSize=28;text.enableAutoSizing=true;text.fontSizeMin=16;text.fontSizeMax=28;text.alignment=TextAlignmentOptions.Center;text.color=ink;text.raycastTarget=false;return text;}
+    {var rect=UIFactory.Create("PrimaryButton",label,parent,min,max);rect.GetComponent<Image>().color=ink;var button=rect.GetComponent<Button>();button.onClick.AddListener(action);var text=rect.GetComponentInChildren<TMP_Text>();text.text=label;text.color=Color.white;text.rectTransform.anchorMin=new Vector2(.02f,.02f);text.rectTransform.anchorMax=new Vector2(.98f,.98f);return button;}
     static RectTransform Rect(string name,Transform parent,Vector2 min,Vector2 max)
     {var rect=new GameObject(name,typeof(RectTransform)).GetComponent<RectTransform>();rect.SetParent(parent,false);rect.anchorMin=min;rect.anchorMax=max;rect.offsetMin=rect.offsetMax=Vector2.zero;return rect;}
 }

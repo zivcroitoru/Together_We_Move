@@ -1,0 +1,1 @@
+{"name":"SharedUI.Editor","references":["SharedUI.Runtime","UnityEngine.UI","Unity.TextMeshPro"],"includePlatforms":["Editor"],"autoReferenced":true}

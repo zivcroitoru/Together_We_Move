@@ -56,7 +56,7 @@ public static class SetupOnScreenControls
         Sprite blueSprite = Artwork("Blue"), redSprite = Artwork("Red");
         Sprite leftArrowSprite = Artwork("Left"), rightArrowSprite = Artwork("Right"), upArrowSprite = Artwork("Jump");
         if(!blueSprite||!redSprite||!leftArrowSprite||!rightArrowSprite||!upArrowSprite)
-            throw new System.InvalidOperationException("Import Assets/Art/KenneyControls before generating controls.");
+            throw new System.InvalidOperationException("Import Assets/SharedUI/Sprites/Controls before generating controls.");
         Color bubblyBlue = Color.white, bubblyRed = Color.white;
 
         // 5. Build Pads
@@ -163,5 +163,5 @@ public static class SetupOnScreenControls
         EditorUtility.SetDirty(trigger);
     }
 
-    private static Sprite Artwork(string name) => AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/KenneyControls/"+name+".png");
+    private static Sprite Artwork(string name) => AssetDatabase.LoadAssetAtPath<Sprite>("Assets/SharedUI/Sprites/Controls/"+name+".png");
 }

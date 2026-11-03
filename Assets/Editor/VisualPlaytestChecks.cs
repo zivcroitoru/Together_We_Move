@@ -46,6 +46,7 @@ public static class VisualPlaytestChecks
                 Require(Math.Abs(area-(2048*1536-57500))<2,"Spotlight does not preserve overlapping clear windows");UnityEngine.Object.DestroyImmediate(mesh);
             }
             UnityEngine.Object.DestroyImmediate(spotRoot);
+            foreach(var icon in root.GetComponentsInChildren<VisualIcon>(true))icon.RefreshArtwork();
             Canvas.ForceUpdateCanvases();rt=new RenderTexture(2048,1536,24);camera.targetTexture=rt;camera.Render();var old=RenderTexture.active;RenderTexture.active=rt;image=new Texture2D(2048,1536,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,2048,1536),0,0);image.Apply();RenderTexture.active=old;
             Directory.CreateDirectory("Logs/VisualUI");File.WriteAllBytes("Logs/VisualUI/results-75.png",image.EncodeToPNG());
             File.WriteAllText("Logs/VisualUI/result.txt","PASS: text-free child results, separate replay buttons, next button, hidden analytics, nonblocking decorative icons, 75% bar.\nLive touch, hint interaction and animation still require Play Mode checks.");

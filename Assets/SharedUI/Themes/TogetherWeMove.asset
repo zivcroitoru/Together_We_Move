@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15db40d40fad3e3408dfb480563f4ef8, type: 3}
+  m_Name: TogetherWeMove
+  m_EditorClassIdentifier: Assembly-CSharp::SharedUI.UITheme
+  primary: {r: 0.16, g: 0.55, b: 0.86, a: 1}
+  secondary: {r: 0.86, g: 0.23, b: 0.28, a: 1}
+  ink: {r: 0.08, g: 0.19, b: 0.25, a: 1}
+  surface: {r: 1, g: 0.985, b: 0.93, a: 1}
+  progress: {r: 0.2, g: 0.72, b: 0.44, a: 1}
+  gold: {r: 1, g: 0.72, b: 0.12, a: 1}
+  font: {fileID: 11400000, guid: 349e9e23621c5cb45ad067582a4bdd7d, type: 2}
+  panel: {fileID: 21300000, guid: a285569340b84f03824d0a0f6a9375bd, type: 3}
+  referenceResolution: {x: 2048, y: 1536}
+  headingSize: 32
+  bodySize: 28
+  minimumSize: 16
+  spacing: 24
+  controlSize: 160
+  fadeSeconds: 0.35
+  scoreSeconds: 1.25
+  pulseAmplitude: 0.12
+  buttonColors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1

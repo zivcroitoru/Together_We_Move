@@ -1,0 +1,1 @@
+The shared TMP font embeds its atlas and material as subassets. Standard TMP shaders and fallback font assets are included by the export tool's dependency collection. Image controls use the built-in UI material; there is no custom game shader dependency.
