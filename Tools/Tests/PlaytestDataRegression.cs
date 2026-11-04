@@ -32,11 +32,24 @@ class CoreRegression { static int Main() { try { CheckProgress(); CheckPersisten
             store.Record(first, "hint_requested", 2, 25, 1, 4, "player_slot_button", "hold");
             store.Record(first, "attempt_finished", 0, 50, 2, 4, outcome: "partial");
             store.Record(first, "retry_requested", 1, 50, 2, 4, "player_key");
+            store.Record(first,"control_mode_selected",0,50,2,4,"researcher","dragging");
+            store.Record(first,"player_fell",1,45,2,4);
+            store.Record(first,"player_fell",2,40,2,4);
+            store.Record(first,"player_fell",2,35,2,4);
+            store.Record(first,"player_recovered",1,35,2,4);
+            store.Record(first,"player_recovered",2,35,2,4);
+            store.Record(first,"cooperation_succeeded",1,35,2,4);
+            store.Record(first,"voluntary_replay",1,35,2,4);
             var reloaded = new PlaytestStore(directory);
             Require(reloaded.PairId == store.PairId, "Pair must persist across sessions");
             Require(reloaded.BeginAttempt("test_level").Number == 2, "Attempt number must persist");
             Require(reloaded.RetryCount("test_level", 1) == 1 && reloaded.RetryCount("test_level", 2) == 0, "Separate retry counts");
             Require(reloaded.PreviousScore("test_level") == 50 && reloaded.BestScore("test_level") == 50, "Score comparison");
+            var metrics=reloaded.Events.Last(e=>e.eventType=="voluntary_replay");
+            Require(metrics.controlMode=="dragging"&&metrics.player1Falls==1&&metrics.player2Falls==2&&metrics.recoveryCount==2&&metrics.cooperationEventCount==1,
+                "Independent falls, recoveries, cooperation and control mode survive journal reload");
+            Require(metrics.hintRequestCount==3&&metrics.retryRequestCount==1&&metrics.voluntaryReplayCount==1,"Hint/retry/replay snapshots");
+            Require(LevelPlaytestDashboard.Format(reloaded).Contains("voluntary replays 1"),"New metrics reach existing dashboard");
             var hint = reloaded.Events.Last(e => e.eventType == "hint_requested" && e.playerId == 1);
             Require(hint.playerHintCount == 2, "Per-player hint counts");
             Require(reloaded.Events.First(e => e.eventType == "hint_requested" && e.playerId == 2).playerHintCount == 1, "Hints isolated by slot");

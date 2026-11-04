@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(CooperationTracker), typeof(CooperationHints), typeof(PlaytestUI))]
+[RequireComponent(typeof(PreschoolTouchControls), typeof(GameplayFeedback))]
 public sealed class GameManager : MonoBehaviour
 {
     [SerializeField] private WinSequence winSequence;
@@ -30,6 +31,13 @@ public sealed class GameManager : MonoBehaviour
     public int AttemptNumber => attempt?.Number ?? 0;
     public float Score => assistance?assistance.Score:tracker?.Progress?.Score ?? 0f;
 
+    private void Awake()
+    {
+        // Older scene/prefab instances also receive the additive features without a migration.
+        if (!GetComponent<PreschoolTouchControls>()) gameObject.AddComponent<PreschoolTouchControls>();
+        if (!GetComponent<GameplayFeedback>()) gameObject.AddComponent<GameplayFeedback>();
+    }
+
     private void Start()
     {
         tracker = GetComponent<CooperationTracker>();
@@ -41,6 +49,8 @@ public sealed class GameManager : MonoBehaviour
         previousBest = PlaytestData.Store.BestScore(level);
         tracker.Initialize();
         attempt = PlaytestData.Store.BeginAttempt(level, tracker.Progress.TotalUnits);
+        GetComponent<GameplayFeedback>().Initialize(players);
+        GetComponent<PreschoolTouchControls>().Initialize(this, players);
         tracker.Milestone += OnMilestone;
         hints.Initialize(this);
         ui.Initialize(this, winSequence);
@@ -86,6 +96,9 @@ public sealed class GameManager : MonoBehaviour
         Log(type, playerId, "gameplay_collider", target);
         hints.NotifyProgress();
         assistance?.Progress(type+":"+target,playerId);
+        GetComponent<GameplayFeedback>()?.Milestone(type, playerId, target);
+        if (type == "assisted_crossing" || (type == "goal_reached" && tracker.Progress.GoalCount == 2))
+            Log("cooperation_succeeded",playerId,"gameplay_collider",type+":"+target);
     }
 
     public void CompleteLevel()
@@ -110,6 +123,7 @@ public sealed class GameManager : MonoBehaviour
     private void FinishLevel()
     {
         levelCompleted = true;
+        GetComponent<GameplayFeedback>()?.Finish();
         tracker.StopObserving();
         FinishAttempt(assistance&&assistance.Assisted?"assisted":tracker.Progress.IsFull ? "full" : "partial");
         foreach (var player in players) if (player) player.SetInputLocked(true);
@@ -138,6 +152,7 @@ public sealed class GameManager : MonoBehaviour
         {
             transitionPending = true;
             retryReloadPending = true;
+            Log("voluntary_replay",playerId,attribution,"result_replay");
             StartCoroutine(ReloadAfterRequests());
         }
     }
@@ -150,19 +165,19 @@ public sealed class GameManager : MonoBehaviour
 
     public void RestartAfterFall(int playerId)
     {
-        if (levelCompleted || transitionPending) return;
-        Log("player_fell", playerId, "gameplay_collider");
-        // Preserve an earned partial finish if the other child falls during the grace period.
-        if (tracker.Progress.GoalCount >= 1 && (!GetComponent<TutorialManager>() || !GetComponent<TutorialManager>().IsActive || GetComponent<TutorialManager>().ControlsLearned))
-        {
-            FinishLevel();
-            return;
-        }
-        transitionPending = true;
-        tracker.StopObserving();
-        FinishAttempt("fall_restart");
-        ReloadCurrentScene();
+        if (players == null) return;
+        foreach (var player in players) if (player && player.PlayerId == playerId)
+            player.GetComponent<PlayerDeathController>()?.TryRecover();
     }
+
+    public void RecordFall(int playerId)
+    {
+        if (levelCompleted || transitionPending) return;
+        assistance?.RegisterFallRecovery(playerId);
+        Log("player_fell",playerId,"gameplay_collider");
+    }
+    public void RecordRecovery(int playerId,bool emergencyPlatform) =>
+        Log("player_recovered",playerId,"system",emergencyPlatform?"emergency_trampoline":"last_safe_bounce");
 
     private void ReloadCurrentScene() => SceneManager.LoadScene(gameObject.scene.path);
 
@@ -174,6 +189,7 @@ public sealed class GameManager : MonoBehaviour
         if (!levelCompleted || transitionPending) return;
         transitionPending = true;
         Log("continue", 0, "shared_button");
+        if (!HasNextLevel) Log("voluntary_replay",0,"shared_button","level_cycle");
         assistance?.NewRun();
         // The last level returns to the first enabled level without inventing a retry requester.
         SceneManager.LoadScene(HasNextLevel ? gameObject.scene.buildIndex + 1 : 0);

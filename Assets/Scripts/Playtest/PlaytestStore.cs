@@ -15,6 +15,9 @@ public sealed class PlaytestEvent
     public float cooperationScore,completionSeconds;
     public int participantMask,assistanceStage;
     public bool assistanceUsed,automaticCompletion;
+    // Additive v1 fields: older journals and dashboard consumers remain readable.
+    public string controlMode;
+    public int player1Falls,player2Falls,recoveryCount,cooperationEventCount,hintRequestCount,retryRequestCount,voluntaryReplayCount;
     public string tutorialRunId, tutorialAction;
     public float tutorialElapsedSeconds=-1f, tutorialPhaseSeconds=-1f;
 }
@@ -24,6 +27,9 @@ public sealed class PlaytestAttempt
     public string PairId, Id, Level;
     public int Number;
     public readonly int[] Hints = new int[3];
+    public readonly int[] Falls = new int[3];
+    public int Recoveries,Cooperations,RetryRequests,VoluntaryReplays;
+    public string ControlMode = "buttons";
 }
 
 /// <summary>Append-only JSONL journal. Every event is closed to disk immediately;
@@ -101,9 +107,17 @@ public sealed class PlaytestStore
     {
         if (attempt == null) return false;
         if (type == "hint_requested" && CooperationProgress.ValidPlayer(playerId)) attempt.Hints[playerId]++;
+        if (type == "player_fell" && CooperationProgress.ValidPlayer(playerId)) attempt.Falls[playerId]++;
+        if (type == "player_recovered") attempt.Recoveries++;
+        if (type == "cooperation_succeeded") attempt.Cooperations++;
+        if (type == "retry_requested") attempt.RetryRequests++;
+        if (type == "voluntary_replay") attempt.VoluntaryReplays++;
+        if (type == "control_mode_selected") attempt.ControlMode = detail;
         return Append(new PlaytestEvent
         {
             completionSeconds=completionSeconds,participantMask=participantMask,assistanceStage=assistanceStage,assistanceUsed=assistanceUsed,automaticCompletion=automaticCompletion,
+            controlMode=attempt.ControlMode,player1Falls=attempt.Falls[1],player2Falls=attempt.Falls[2],recoveryCount=attempt.Recoveries,
+            cooperationEventCount=attempt.Cooperations,hintRequestCount=attempt.Hints[1]+attempt.Hints[2],retryRequestCount=attempt.RetryRequests,voluntaryReplayCount=attempt.VoluntaryReplays,
             pairId = attempt.PairId, attemptId = attempt.Id, level = attempt.Level, attemptNumber = attempt.Number,
             eventType = type, playerId = playerId, cooperationScore = score, earnedUnits = earned, totalUnits = total,
             playerRetryCount = RetryCount(attempt.Level, playerId) + (type == "retry_requested" ? 1 : 0),
@@ -156,14 +170,15 @@ public sealed class PlaytestStore
 
     public static string ToCsv(IEnumerable<PlaytestEvent> entries)
     {
-        var csv = new StringBuilder("schema_version,event_id,pair_id,session_id,attempt_id,level,player_id,attempt_number,event_type,outcome,cooperation_score,earned_units,total_units,player_retry_count,player_hint_count,timestamp_utc,attribution,detail,tutorial_run_id,tutorial_action,tutorial_elapsed_seconds,tutorial_phase_seconds,completion_seconds,participant_mask,assistance_stage,assistance_used,automatic_completion\r\n");
+        var csv = new StringBuilder("schema_version,event_id,pair_id,session_id,attempt_id,level,player_id,attempt_number,event_type,outcome,cooperation_score,earned_units,total_units,player_retry_count,player_hint_count,timestamp_utc,attribution,detail,tutorial_run_id,tutorial_action,tutorial_elapsed_seconds,tutorial_phase_seconds,completion_seconds,participant_mask,assistance_stage,assistance_used,automatic_completion,control_mode,player_1_falls,player_2_falls,recovery_count,cooperation_event_count,hint_request_count,retry_request_count,voluntary_replay_count\r\n");
         foreach (var e in entries)
         {
             object[] columns = { e.schemaVersion, e.eventId, e.pairId, e.sessionId, e.attemptId, e.level, e.playerId,
                 e.attemptNumber, e.eventType, e.outcome, e.cooperationScore, e.earnedUnits, e.totalUnits,
                 e.playerRetryCount, e.playerHintCount, e.timestampUtc, e.attribution, e.detail, e.tutorialRunId, e.tutorialAction,
                 string.IsNullOrEmpty(e.tutorialRunId) || e.tutorialElapsedSeconds<0 ? "" : e.tutorialElapsedSeconds.ToString("0.###",CultureInfo.InvariantCulture),
-                string.IsNullOrEmpty(e.tutorialRunId) || e.tutorialPhaseSeconds<0 ? "" : e.tutorialPhaseSeconds.ToString("0.###",CultureInfo.InvariantCulture), e.completionSeconds,e.participantMask,e.assistanceStage,e.assistanceUsed,e.automaticCompletion };
+                string.IsNullOrEmpty(e.tutorialRunId) || e.tutorialPhaseSeconds<0 ? "" : e.tutorialPhaseSeconds.ToString("0.###",CultureInfo.InvariantCulture), e.completionSeconds,e.participantMask,e.assistanceStage,e.assistanceUsed,e.automaticCompletion,
+                e.controlMode,e.player1Falls,e.player2Falls,e.recoveryCount,e.cooperationEventCount,e.hintRequestCount,e.retryRequestCount,e.voluntaryReplayCount };
             csv.AppendLine(string.Join(",", columns.Select(value => CsvCell(Convert.ToString(value, CultureInfo.InvariantCulture)))));
         }
         return csv.ToString();

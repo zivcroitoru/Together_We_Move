@@ -17,7 +17,7 @@ public sealed class PlaytestUI : MonoBehaviour
     GameManager manager;WinSequence celebration;RectTransform hud,panel,card,fill;
     UIProgress teamworkProgress;
     CanvasGroup panelGroup;Sprite rounded;Image[] avatars=new Image[2];RectTransform[] stars=new RectTransform[3];
-    RectTransform researcher;UnityEngine.UI.Button newPairButton;TMP_Text researcherStatus,levelSummary,blueSummary,redSummary;string storageError,exportStatus;
+    RectTransform researcher;UnityEngine.UI.Button newPairButton,controlModeButton;TMP_Text researcherStatus,levelSummary,blueSummary,redSummary;string storageError,exportStatus;
     Canvas spotlightCanvas;HintSpotlight shade;readonly List<HintSpot> spots=new();readonly List<RectTransform> arrows=new(),hands=new();
     readonly Dictionary<int,GuidanceTiming> guideClocks=new();readonly Dictionary<int,float> handStarts=new();
     string guidanceContext;float dashboardNextUpdate;PlayerController[] guidePlayers;Vector3[] guidePositions;
@@ -51,6 +51,8 @@ public sealed class PlaytestUI : MonoBehaviour
         hud=Rect("Visual HUD",canvas.transform,Vector2.zero,Vector2.one);
         Button("Blue Hint",hud,new Vector2(.035f,.84f),new Vector2(.145f,.97f),blue,VisualIcon.Shape.Bulb,()=>manager.RequestHint(1));
         Button("Red Hint",hud,new Vector2(.855f,.84f),new Vector2(.965f,.97f),red,VisualIcon.Shape.Bulb,()=>manager.RequestHint(2));
+        // Small adult entry point also works on Android, where F8 is unavailable.
+        Button("Researcher dashboard",hud,new Vector2(.465f,.94f),new Vector2(.535f,.985f),new Color(.55f,.65f,.7f),VisualIcon.Shape.Bulb,()=>{researcher.gameObject.SetActive(true);dashboardNextUpdate=0;});
         card=Box("Celebration",panel,new Vector2(.10f,.19f),new Vector2(.90f,.86f),new Color(1,.985f,.93f));
         for(int i=0;i<3;i++)stars[i]=Icon("Celebration star",card,new Vector2(.25f+i*.17f,.76f),new Vector2(.41f+i*.17f,.96f),VisualIcon.Shape.Star,new Color(1,.72f,.12f));
         for(int i=0;i<2;i++)
@@ -72,7 +74,10 @@ public sealed class PlaytestUI : MonoBehaviour
         AdultButton("Close  X",researcher,new Vector2(.865f,.925f),new Vector2(.97f,.975f),()=>researcher.gameObject.SetActive(false));
         AdultButton("Export CSV",researcher,new Vector2(.035f,.835f),new Vector2(.32f,.9f),()=>{var path=PlaytestData.Store.ExportCsv();exportStatus=path??PlaytestData.Store.LastError;dashboardNextUpdate=0;});
         newPairButton=AdultButton("New anonymous pair",researcher,new Vector2(.34f,.835f),new Vector2(.68f,.9f),manager.StartNewPair);
-        AdultLabel(researcher,"F8 to toggle",new Vector2(.72f,.84f),new Vector2(.96f,.89f),21,new Color(.40f,.45f,.52f),TextAlignmentOptions.MidlineRight);
+        controlModeButton=AdultButton("Controls: Buttons",researcher,new Vector2(.70f,.835f),new Vector2(.97f,.9f),()=>{
+            var controls=manager.GetComponent<PreschoolTouchControls>();
+            controls.SetMode(controls.Mode==PreschoolControlMode.Buttons?PreschoolControlMode.Dragging:PreschoolControlMode.Buttons);dashboardNextUpdate=0;
+        });
 
         var levelCard=DashboardCard("LEVEL RESULTS",researcher,new Vector2(.035f,.45f),new Vector2(.965f,.815f),ink);
         levelSummary=AdultLabel(levelCard,"",new Vector2(.035f,.07f),new Vector2(.965f,.79f),23,ink,TextAlignmentOptions.TopLeft);
@@ -93,6 +98,7 @@ public sealed class PlaytestUI : MonoBehaviour
     void Update()
     {
         if(!manager)return;
+        if(controlModeButton)controlModeButton.GetComponentInChildren<TMP_Text>().text="Controls: "+manager.GetComponent<PreschoolTouchControls>().Mode;
         if(newPairButton)newPairButton.interactable=manager.LevelCompleted&&!manager.IsTransitioning;
         if(Keyboard.current!=null&&Keyboard.current.f8Key.wasPressedThisFrame ){researcher.gameObject.SetActive(!researcher.gameObject.activeSelf);dashboardNextUpdate=0;}
         if(researcher.gameObject.activeSelf&&Time.unscaledTime>=dashboardNextUpdate){dashboardNextUpdate=Time.unscaledTime+.25f;RefreshResearcherDashboard();}
@@ -195,11 +201,17 @@ public sealed class PlaytestUI : MonoBehaviour
             var target=spots[i];Rect rect;
             if(!string.IsNullOrEmpty(target.Button)||target.ControlRect)
             {
-                var control=target.ControlRect?target.ControlRect:canvas.transform.Find((target.Player==1?"P1_Controls/":"P2_Controls/")+target.Button) as RectTransform;
+                string allowedButton=target.Button; // Both players have all three controls.
+                var control=target.ControlRect&&target.ControlRect.gameObject.activeInHierarchy?target.ControlRect:canvas.transform.Find((target.Player==1?"P1_Controls/":"P2_Controls/")+allowedButton) as RectTransform;
                 if(!control){arrows[i].gameObject.SetActive(false);if(hands[i])hands[i].gameObject.SetActive(false);continue;}
                 var corners=new Vector3[4];control.GetWorldCorners(corners);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(root,RectTransformUtility.WorldToScreenPoint(canvas.renderMode==RenderMode.ScreenSpaceOverlay?null:canvas.worldCamera,corners[0]),null,out var a);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(root,RectTransformUtility.WorldToScreenPoint(canvas.renderMode==RenderMode.ScreenSpaceOverlay?null:canvas.worldCamera,corners[2]),null,out var b);rect=UnityEngine.Rect.MinMaxRect(a.x-16,a.y-16,b.x+16,b.y+16);
+                if(manager.GetComponent<PreschoolTouchControls>().Mode==PreschoolControlMode.Dragging&&camera)
+                {
+                    foreach(var player in guidePlayers)if(player&&player.PlayerId==target.Player)
+                    {RectTransformUtility.ScreenPointToLocalPointInRectangle(root,camera.WorldToScreenPoint(player.transform.position),null,out var point);rect=new Rect(point-new Vector2(85,70),new Vector2(170,140));break;}
+                }
             }
             else
             {
@@ -223,6 +235,8 @@ public sealed class PlaytestUI : MonoBehaviour
                 float sign=fromAbove?-1:1;
                 var fingertip=new Vector2(-.06f,.40f)*Mathf.Min(hands[i].sizeDelta.x,hands[i].sizeDelta.y)*sign;
                 hands[i].anchoredPosition=rect.center-fingertip-Vector2.up*sign*((1-press)*65+lift);
+                if(target.Button!="Btn_Jump"&&manager.GetComponent<PreschoolTouchControls>().Mode==PreschoolControlMode.Dragging)
+                    hands[i].anchoredPosition+=Vector2.right*(target.Button=="Btn_Left"?-1:1)*Mathf.Clamp01((elapsed-.5f)/.8f)*65;
             }
             arrows[i].anchorMin=arrows[i].anchorMax=Vector2.one*.5f;arrows[i].anchoredPosition=new Vector2(rect.center.x,rect.yMax+55+9*Mathf.Sin(Time.unscaledTime*3));arrows[i].sizeDelta=new Vector2(95,95)*(1+.12f*emphasis);
         }

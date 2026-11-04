@@ -9825,6 +9825,8 @@ GameObject:
   - component: {fileID: 2100000102}
   - component: {fileID: 2100000103}
   - component: {fileID: 2100000105}
+  - component: {fileID: 2100000106}
+  - component: {fileID: 2100000107}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -11130,6 +11132,36 @@ MonoBehaviour:
   goalWeight: 20
   easedCreditMultiplier: 0.8
   automaticCreditMultiplier: 0.45
+--- !u!114 &2100000106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c8f0789513539b45b628beb8d8dcdb0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PreschoolTouchControls
+  controlMode: 0
+  characterTouchRadiusPixels: 90
+  dragDeadZone: 0.08
+--- !u!114 &2100000107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828736515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 016212fec490620478b19b59bb40fc54, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::GameplayFeedback
+  cheerfulSound: {fileID: 0}
+  volume: 0.18
+  minimumInterval: 0.65
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

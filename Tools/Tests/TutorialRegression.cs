@@ -28,7 +28,7 @@ class TutorialRegression
         Check(!progress.BothLearned(1)&&!progress.ControlsLearned(1),"Left completion does not pre-complete right or jump");
         progress.BeginPhase(1,30);progress.Learn(1,1);progress.Learn(1,2);
         progress.BeginPhase(2,40);progress.Learn(2,1);
-        Check(progress.ControlsLearned(1)&&!progress.ControlsLearned(2),"Controls completion tracked separately");
+        Check(progress.ControlsLearned(1)&&progress.ControlsLearned(2),"A needs only jump; B needs only left/right");
         Check(progress.MarkTotal("controls",1)&&!progress.MarkTotal("controls",1),"Per-child completion logged once");
         progress.Learn(2,2);Check(progress.BothLearned(2)&&progress.ControlsLearned(2),"Both jump gate");
         TutorialSession.Reset();Check(!TutorialSession.Started&&!TutorialSession.Completed&&TutorialSession.NextStep==0,"New play session starts clean");

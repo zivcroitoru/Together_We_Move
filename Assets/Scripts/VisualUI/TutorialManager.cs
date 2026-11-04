@@ -37,6 +37,9 @@ public sealed class TutorialManager : MonoBehaviour
     public bool IsActive { get; private set; }
     public int CurrentStepIndex => phase;
     public bool ControlsLearned => progress!=null&&progress.ControlsLearned(1)&&progress.ControlsLearned(2);
+    // Keep serialized steps and objective references; never teach or credit a forbidden action.
+    static bool Supported(Step step) => step.action==Action.Move?step.player.CanMoveHorizontally:step.action!=Action.Jump||step.player.CanJump;
+    public void RefreshControls() { if(IsActive){guideKey=null;RefreshGuide(true);} }
 
     public void Initialize(GameManager owner)
     {
@@ -97,7 +100,7 @@ public sealed class TutorialManager : MonoBehaviour
         bool all=true;bool any=false;
         for(int i=0;i<steps.Length;i++)
         {
-            var step=steps[i];if(step.phase!=phase)continue;any=true;
+            var step=steps[i];if(step.phase!=phase||!Supported(step))continue;any=true;
             if(progress.HasLearned(phase,step.player.PlayerId))continue;
             // Children may have crossed the bridge while learning the controls.
             // Do not point them back toward a plate that is now behind both of them.
@@ -122,7 +125,7 @@ public sealed class TutorialManager : MonoBehaviour
             else all=false;
         }
         // The AND gate is per phase: one player's success never advances the other.
-        if(any&&all)
+        if(all&&(any||phase<3))
         {
             phase++;
             if(phase>MaxPhase()){Finish();return;}
@@ -182,7 +185,7 @@ public sealed class TutorialManager : MonoBehaviour
         targets.Clear();string key=phase.ToString();
         foreach(var step in steps)
         {
-            if(step.phase!=phase||progress.HasLearned(phase,step.player.PlayerId))continue;
+            if(step.phase!=phase||!Supported(step)||progress.HasLearned(phase,step.player.PlayerId))continue;
             var actor=step.player;string control=step.action==Action.Jump?"Btn_Jump":step.direction<0?"Btn_Left":"Btn_Right";
             if(step.action==Action.OccupyPlate||step.action==Action.HelpPartnerCross)
             {

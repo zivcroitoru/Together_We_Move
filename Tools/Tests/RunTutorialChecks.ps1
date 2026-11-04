@@ -9,7 +9,7 @@ $mono=Join-Path $UnityEditor 'Data/MonoBleedingEdge/bin/mono.exe'
 $api=Join-Path $UnityEditor 'Data/MonoBleedingEdge/lib/mono/4.7.1-api'
 $cases=@(
     @{Name='TutorialRegression'; Sources=@('Tools/Tests/TutorialRegression.cs','Assets/Scripts/VisualUI/GuidanceTiming.cs','Assets/Scripts/VisualUI/TutorialProgress.cs','Assets/Scripts/VisualUI/TutorialSession.cs'); Refs=@('mscorlib','System','System.Core')},
-    @{Name='PlaytestDataRegression'; Sources=@('Tools/Tests/PlaytestDataRegression.cs','Assets/Scripts/Playtest/CooperationProgress.cs','Assets/Scripts/Playtest/PlaytestStore.cs','Assets/Scripts/VisualUI/TutorialDashboard.cs','Assets/Scripts/Playtest/LevelCooperationScore.cs'); Refs=@('mscorlib','System','System.Core','System.Web.Extensions')}
+    @{Name='PlaytestDataRegression'; Sources=@('Tools/Tests/PlaytestDataRegression.cs','Assets/Scripts/Playtest/CooperationProgress.cs','Assets/Scripts/Playtest/PlaytestStore.cs','Assets/Scripts/VisualUI/TutorialDashboard.cs','Assets/Scripts/Playtest/LevelCooperationScore.cs','Assets/Scripts/Playtest/LevelPlaytestDashboard.cs'); Refs=@('mscorlib','System','System.Core','System.Web.Extensions')}
 )
 foreach($case in $cases) {
     $exe=Join-Path $testOutput ($case.Name+'.exe')

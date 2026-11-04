@@ -23,6 +23,13 @@ public static class LevelPlaytestDashboard
                 .Append(" | mechanical/finish aid ").Append(latest.assistanceUsed?"yes":"no")
                 .Append(" | auto finish ").Append(latest.automaticCompletion?"yes":"no")
                 .Append(" | replays P1/P2 ").Append(store.RetryCount(level.Key,1)).Append('/').Append(store.RetryCount(level.Key,2)).Append('\n');
+            output.Append("Falls A/B ").Append(attempt.Count(e=>e.eventType=="player_fell"&&e.playerId==1)).Append('/')
+                .Append(attempt.Count(e=>e.eventType=="player_fell"&&e.playerId==2))
+                .Append(" | recovered ").Append(attempt.Count(e=>e.eventType=="player_recovered"))
+                .Append(" | cooperation ").Append(attempt.Count(e=>e.eventType=="cooperation_succeeded"))
+                .Append(" | controls ").Append(attempt.LastOrDefault(e=>e.eventType=="control_mode_selected")?.detail??latest.controlMode??"legacy")
+                .Append(" | retry requests ").Append(level.Count(e=>e.eventType=="retry_requested"))
+                .Append(" | voluntary replays ").Append(level.Count(e=>e.eventType=="voluntary_replay")).Append('\n');
         }
         return output.ToString();
     }

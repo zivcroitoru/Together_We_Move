@@ -48,6 +48,11 @@ public sealed class CooperationTracker : MonoBehaviour
     }
 
     public void StopObserving() => observing = false;
+    public void ResetCrossings(int playerId)
+    {
+        foreach (var crossing in crossings) if (crossing.Player && crossing.Player.PlayerId == playerId)
+        { crossing.Bank = 0; crossing.Helpers = 0; crossing.Touched = false; }
+    }
 
     private void FixedUpdate()
     {
@@ -61,6 +66,7 @@ public sealed class CooperationTracker : MonoBehaviour
     private void Observe(Crossing c)
     {
         if (!c.Player || !c.Bridge || !c.Bridge.CanObserveLocally) return;
+        if (c.Player.IsRecovering) { c.Bank = 0; c.Helpers = 0; c.Touched = false; return; }
         var surface = c.Bridge.Surface;
         var body = c.Player.BodyCollider;
         if (!surface || !surface.enabled || !body || !body.enabled)

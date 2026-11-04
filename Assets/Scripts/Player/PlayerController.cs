@@ -7,32 +7,84 @@ public sealed class PlayerController : MonoBehaviour
     [SerializeField] private PlayerView view;
     [SerializeField] private float moveSpeed = 4f, jumpForce = 7f;
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private bool isPlayerTwo; 
+    [SerializeField] private bool isPlayerTwo;
 
     private Rigidbody2D rb;
     private Collider2D col;
     private float moveInput;
     private float touchMoveInput;
+    private float dragMoveInput;
+    private float lastAppliedMove;
+    private float previousPhysicsX;
+    private float jumpMoveLockUntil;
     private bool inputLocked;
+    private bool recovering;
+    private bool dragging;
+    private readonly ContactPoint2D[] groundContacts = new ContactPoint2D[16];
 
-    // Stable anonymous slots shared by keyboard, touch controls, goals and logging.
+    // Player ID determines the control pad and keyboard bindings, NOT abilities.
     public int PlayerId => isPlayerTwo ? 2 : 1;
     public Collider2D BodyCollider => col;
-    public bool IsGrounded => col != null && col.IsTouchingLayers(groundLayer);
+    public bool CanMoveHorizontally => true;
+    public bool CanJump => true;
+    public bool InputLocked => inputLocked || recovering;
+    public bool IsRecovering => recovering;
+    public LayerMask GroundLayer => groundLayer;
+    public bool IsGrounded
+    {
+        get
+        {
+            if (col == null || rb == null || !rb.simulated) return false;
+            var filter = new ContactFilter2D();
+            filter.SetLayerMask(groundLayer);
+            filter.useTriggers = false;
+            int count = col.GetContacts(filter, groundContacts);
+            for (int i = 0; i < count; i++)
+                if (groundContacts[i].normal.y > .65f) return true;
+            return false;
+        }
+    }
+
     public int SuccessfulJumpCount { get; private set; }
     public float MoveIntent => moveInput;
     public float SuccessfulLeftDistance { get; private set; }
     public float SuccessfulRightDistance { get; private set; }
-    private float previousPhysicsX, lastAppliedMove;
 
     public void SetInputLocked(bool locked)
     {
         inputLocked = locked;
-        moveInput = touchMoveInput = 0f;
+        ClearTouchInput();
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
-            rb.simulated = !locked;
+            rb.simulated = !locked && !recovering;
+        }
+        if (view) view.SetWalking(false);
+    }
+
+    public void ClearTouchInput()
+    {
+        moveInput = touchMoveInput = dragMoveInput = 0f;
+        dragging = false;
+        lastAppliedMove = 0f;
+    }
+
+    // Kept for a future optional drag-control experiment.
+    public void SetDragMove(float direction, bool active)
+    {
+        dragging = active && !InputLocked;
+        dragMoveInput = dragging ? Mathf.Clamp(direction, -1f, 1f) : 0f;
+    }
+
+    public void SetRecovering(bool value)
+    {
+        recovering = value;
+        ClearTouchInput();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.simulated = !inputLocked && !recovering;
+            previousPhysicsX = rb.position.x;
         }
         if (view) view.SetWalking(false);
     }
@@ -40,82 +92,87 @@ public sealed class PlayerController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        previousPhysicsX = rb.position.x;
         col = GetComponent<Collider2D>();
         if (!view) view = GetComponentInChildren<PlayerView>();
 
-        // Ignore collisions with other players
-        foreach (var otherPlayer in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
+        // Remove the old Player 1 horizontal lock, including one saved in the Inspector.
+        rb.constraints &= ~RigidbodyConstraints2D.FreezePositionX;
+        previousPhysicsX = rb.position.x;
+
+        // Maintain the existing non-colliding two-player behavior.
+        foreach (var other in FindObjectsByType<PlayerController>(FindObjectsSortMode.None))
         {
-            if (otherPlayer != this)
-            {
-                Collider2D otherCol = otherPlayer.GetComponent<Collider2D>();
-                if (otherCol != null && col != null)
-                    Physics2D.IgnoreCollision(col, otherCol, true);
-            }
+            if (other == this) continue;
+            var otherCollider = other.GetComponent<Collider2D>();
+            if (otherCollider && col) Physics2D.IgnoreCollision(col, otherCollider, true);
         }
     }
 
     private void Update()
     {
-        if (inputLocked) return;
+        if (InputLocked) return;
         ReadInput();
-        bool grounded = col.IsTouchingLayers(groundLayer);
-        if (view)
-        {
-            view.SetWalking(grounded && Mathf.Abs(moveInput) > 0.01f);
-            if (grounded && Mathf.Abs(moveInput) > 0.01f) view.SetFacingDirection(moveInput > 0 ? 1 : -1);
-        }
+        if (!view) return;
+        bool walking = IsGrounded && Mathf.Abs(moveInput) > .01f;
+        view.SetWalking(walking);
+        if (walking) view.SetFacingDirection(moveInput > 0f ? 1 : -1);
     }
 
     private void FixedUpdate()
     {
-        // Observe the result of the previous physics step, not a button press or an assumed move.
-        float moved=rb.position.x-previousPhysicsX;previousPhysicsX=rb.position.x;
-        if(lastAppliedMove<0&&moved<0)SuccessfulLeftDistance-=moved;
-        if(lastAppliedMove>0&&moved>0)SuccessfulRightDistance+=moved;
-        lastAppliedMove=!inputLocked&&col.IsTouchingLayers(groundLayer)?moveInput:0;
-        if (!inputLocked)
+        float moved = rb.position.x - previousPhysicsX;
+        previousPhysicsX = rb.position.x;
+        if (lastAppliedMove < 0f && moved < 0f) SuccessfulLeftDistance -= moved;
+        if (lastAppliedMove > 0f && moved > 0f) SuccessfulRightDistance += moved;
+
+        // Both characters can walk, but jumping is straight up (no air steering).
+        lastAppliedMove = !InputLocked && IsGrounded && Time.time >= jumpMoveLockUntil
+            ? moveInput : 0f;
+        if (!InputLocked)
             rb.linearVelocity = new Vector2(lastAppliedMove * moveSpeed, rb.linearVelocity.y);
     }
 
     private void ReadInput()
     {
-        float kbInput = 0f;
+        float keyboardMove = 0f;
         var kb = Keyboard.current;
-
         if (kb != null)
         {
-            if (!isPlayerTwo) 
+            if (isPlayerTwo)
             {
-                if (kb.aKey.isPressed) kbInput -= 1f;
-                if (kb.dKey.isPressed) kbInput += 1f;
-                if (kb.wKey.wasPressedThisFrame) Jump();
-            } 
-            else 
-            {
-                if (kb.leftArrowKey.isPressed) kbInput -= 1f;
-                if (kb.rightArrowKey.isPressed) kbInput += 1f;
+                if (kb.leftArrowKey.isPressed) keyboardMove -= 1f;
+                if (kb.rightArrowKey.isPressed) keyboardMove += 1f;
                 if (kb.upArrowKey.wasPressedThisFrame) Jump();
+            }
+            else
+            {
+                if (kb.aKey.isPressed) keyboardMove -= 1f;
+                if (kb.dKey.isPressed) keyboardMove += 1f;
+                if (kb.wKey.wasPressedThisFrame) Jump();
             }
         }
 
-        // עדיפות למגע אם לוחצים, אחרת מקלדת
-        moveInput = Mathf.Abs(touchMoveInput) > 0.01f ? touchMoveInput : kbInput;
+        // Touch buttons take priority over optional drag and keyboard input.
+        moveInput = Mathf.Abs(touchMoveInput) > .01f ? touchMoveInput
+            : dragging ? dragMoveInput : keyboardMove;
     }
 
-    // פונקציות לכפתורי מסך (UI)
     public void SetTouchMove(float direction)
     {
-        if (!inputLocked) touchMoveInput = direction;
+        if (direction == 0f || !InputLocked)
+            touchMoveInput = Mathf.Clamp(direction, -1f, 1f);
     }
 
+    // Called by the correct player's jump button or keyboard binding.
     public void Jump()
     {
-        if (!inputLocked && col != null && col.IsTouchingLayers(groundLayer))
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            SuccessfulJumpCount++;
-        }
+        if (InputLocked || !IsGrounded || rb.linearVelocity.y > .15f) return;
+        rb.linearVelocity = new Vector2(0f, jumpForce);
+        // Prevent ground-contact lag from producing a short diagonal takeoff.
+        jumpMoveLockUntil = Time.time + .10f;
+        SuccessfulJumpCount++;
     }
+
+    private void OnApplicationFocus(bool focused) { if (!focused) ClearTouchInput(); }
+    private void OnApplicationPause(bool paused) { if (paused) ClearTouchInput(); }
 }

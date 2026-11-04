@@ -13,10 +13,12 @@ public sealed class LevelAssistance : MonoBehaviour
     [Header("Score weights (normalized)")]
     [SerializeField,Min(0)] float participationWeight=20,cooperationWeight=60,goalWeight=20;
     [SerializeField,Range(0,1)] float easedCreditMultiplier=.8f,automaticCreditMultiplier=.45f;
+    [SerializeField, Range(.1f,1f)] float recoveryCreditMultiplier=.9f;
     sealed class State
     {
         public float LastProgress,Started,FinalAt=-1;
         public int Stage;
+        public int Recoveries;
         public bool MechanicalUsed,Automatic,EaseEnabled;
         public readonly HashSet<string> Seen=new();
     }
@@ -24,12 +26,19 @@ public sealed class LevelAssistance : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetSessions()=>sessions.Clear();
     GameManager manager;PlaytestUI ui;CooperationHints hints;TutorialManager tutorial;
     PressurePlate[] plates;PlayerController[] players;Lever[] levers;BridgeController[] bridges;State state;string key;
-    public bool Assisted => state!=null&&(state.MechanicalUsed||state.Automatic);
+    public bool Assisted => state!=null&&(state.MechanicalUsed||state.Automatic||state.Recoveries>0);
     public bool Automatic => state!=null&&state.Automatic;
     public float CompletionSeconds => state==null?0:Mathf.Max(0,Time.unscaledTime-state.Started);
     public int Stage => state?.Stage??0;
     public float Score => LevelCooperationScore.Calculate(manager?.Tracker?.Progress,participationWeight,cooperationWeight,goalWeight,
-        state==null?1:state.Automatic?automaticCreditMultiplier:state.MechanicalUsed?easedCreditMultiplier:1);
+        state==null?1:Mathf.Min(state.Automatic?automaticCreditMultiplier:state.MechanicalUsed?easedCreditMultiplier:1,
+            Mathf.Pow(recoveryCreditMultiplier,state.Recoveries)));
+    public void RegisterFallRecovery(int playerId)
+    {
+        if (state == null) return;
+        state.Recoveries++;
+        manager.Log("mechanical_assistance_used",playerId,"system","fall_recovery");
+    }
     public void Initialize(GameManager owner)
     {
         manager=owner;ui=GetComponent<PlaytestUI>();hints=GetComponent<CooperationHints>();tutorial=GetComponent<TutorialManager>();
@@ -49,6 +58,8 @@ public sealed class LevelAssistance : MonoBehaviour
         if(state==null||!state.Seen.Add(milestone+":"+player))return;
         state.LastProgress=Time.unscaledTime;state.Stage=0;state.FinalAt=-1;
         ui.SetHandDemonstrations(false);hints.NotifyProgress();
+        if (milestone.StartsWith("plate:") || milestone.StartsWith("lever:"))
+            GetComponent<GameplayFeedback>()?.Discovery(milestone,player);
         manager.Log("meaningful_progress",player,"gameplay",milestone);
         // Once enabled, the forgiving release window stays for this run; actual use remains logged.
     }

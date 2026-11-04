@@ -17,6 +17,6 @@ public sealed class TutorialProgress
     public bool Learn(int phase,int player)=>learned.Add(Key(phase,player));
     public bool HasLearned(int phase,int player)=>learned.Contains(Key(phase,player));
     public bool BothLearned(int phase)=>HasLearned(phase,1)&&HasLearned(phase,2);
-    public bool ControlsLearned(int player)=>HasLearned(0,player)&&HasLearned(1,player)&&HasLearned(2,player);
+    public bool ControlsLearned(int player)=>player==1?HasLearned(2,player):player==2&&HasLearned(0,player)&&HasLearned(1,player);
     public bool MarkTotal(string metric,int player)=>totals.Add(metric+":"+player);
 }

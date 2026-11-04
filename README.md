@@ -5,6 +5,8 @@ Two kids control two different characters (Blue and Red) on the same screen. The
 
 See [the current visual playtest guide](Docs/VISUAL_PLAYTEST.md) for Inspector settings, the gameplay-based score calculation, CSV export, attribution limits and the manual test checklist.
 
+See [the preschool playtest update](Docs/PRESCHOOL_PLAYTEST.md) for fall recovery, jump-only A / left-right-only B, optional dragging, positive feedback, portrait configuration, added analytics, and testing. The original layouts are retained with the existing assisted finish, as requested for this playtest.
+
 ---
 
 ## How It Works

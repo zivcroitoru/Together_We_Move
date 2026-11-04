@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public sealed class PlayerView : MonoBehaviour
 {
@@ -7,6 +8,38 @@ public sealed class PlayerView : MonoBehaviour
 
     // Hash for optimized animator parameter lookups
     private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
+    private Coroutine reaction;
+    private Vector3 restingPosition;
+    private bool hasRestingPosition;
+
+    public void Celebrate() => React(.35f, .12f, false);
+    public void BounceRecovery(float seconds) => React(seconds, .5f, true);
+    private void React(float seconds, float height, bool recovery)
+    {
+        // Animate artwork only, keeping the collider and sprite proportions unchanged.
+        if (GetComponent<Rigidbody2D>() || !isActiveAndEnabled) return;
+        if (!hasRestingPosition) { restingPosition = transform.localPosition; hasRestingPosition = true; }
+        if (reaction != null) StopCoroutine(reaction);
+        reaction = StartCoroutine(ReactRoutine(seconds, height, recovery));
+    }
+    private IEnumerator ReactRoutine(float seconds, float height, bool recovery)
+    {
+        float elapsed = 0f;
+        while (elapsed < seconds)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / Mathf.Max(.1f,seconds));
+            // A short spring-in from below makes rescue visible, followed by a small settling bounce.
+            float offset = recovery && t < .45f
+                ? Mathf.Lerp(-height, height, Mathf.Sin(t/.45f*Mathf.PI*.5f))
+                : recovery ? Mathf.Abs(Mathf.Cos((t-.45f)/.55f*Mathf.PI*1.5f))*height*(1-t)/.55f
+                : Mathf.Abs(Mathf.Sin(t*Mathf.PI*2))*height*(1-t);
+            transform.localPosition = restingPosition + Vector3.up * offset;
+            yield return null;
+        }
+        transform.localPosition = restingPosition; reaction = null;
+    }
+    private void OnDisable() { if (hasRestingPosition) transform.localPosition = restingPosition; reaction = null; }
 
     public void SetFacingDirection(int direction) //[cite: 1]
     {

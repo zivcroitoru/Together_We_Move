@@ -16,6 +16,12 @@ public static class TutorialDashboard
             text.Append("\nPlayer ").Append(player).Append(player==1?" (Blue)\n":" (Red)\n");
             foreach(string action in new[]{"left","right","jump"})
             {
+                if((player==1&&action!="jump")||(player==2&&action=="jump"))
+                {
+                    // Keep historic runs fully visible; new role-restricted runs never fake these actions.
+                    if(!events.Any(e=>e.playerId==player&&e.tutorialAction==action&&e.eventType=="tutorial_first_success"))
+                    {text.Append(action).Append(": not part of this player's role\n");continue;}
+                }
                 var first=events.FirstOrDefault(e=>e.playerId==player&&e.tutorialAction==action&&e.eventType=="tutorial_first_success");
                 var learned=events.FirstOrDefault(e=>e.playerId==player&&e.tutorialAction==action&&e.eventType=="tutorial_action_learned");
                 text.Append(action).Append(": first ").Append(Time(first,false)).Append(" / learned ").Append(Time(learned,false));
