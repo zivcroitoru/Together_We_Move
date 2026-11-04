@@ -86,6 +86,9 @@ public sealed class LevelAssistance : MonoBehaviour
     }
     void Guide(bool hand)
     {
+        // Once both children have pressed a control, don't restart automatic
+        // tutorial spotlights. Manual ? hints and mechanical help still work.
+        if (tutorial && tutorial.SuppressAutomaticGuidance) return;
         ui.SetHandDemonstrations(hand);
         if(tutorial&&tutorial.IsActive){if(hand)tutorial.RepeatDemonstration();}
         else hints.ShowAutomatic(hand);
