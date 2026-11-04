@@ -104,6 +104,8 @@ public sealed class PlaytestUI : MonoBehaviour
         if(researcher.gameObject.activeSelf&&Time.unscaledTime>=dashboardNextUpdate){dashboardNextUpdate=Time.unscaledTime+.25f;RefreshResearcherDashboard();}
         if(spotlightCanvas&&spotlightCanvas.gameObject.activeSelf&&guidePlayers!=null)
         {
+            // Detect tutorials that keep displaying a plate the children passed.
+            if(RefreshStaleBridgeHint())return;
             for(int i=0;i<guidePlayers.Length;i++)if(guidePlayers[i]&&IsGuidedPlayer(guidePlayers[i].PlayerId)&&Vector3.Distance(guidePositions[i],guidePlayers[i].transform.position)>.05f)
             {if(guideClocks.TryGetValue(guidePlayers[i].PlayerId,out var clock))clock.NotifyActivity(Time.unscaledTime);guidePositions[i]=guidePlayers[i].transform.position;}
             foreach(var pair in guideClocks)if(handDemonstrations&&pair.Value.ShouldRepeat(Time.unscaledTime)){RepeatHandDemo(pair.Key);DemonstrationRepeated?.Invoke(pair.Key);}
@@ -163,8 +165,84 @@ public sealed class PlaytestUI : MonoBehaviour
         return label;
     }
 
+    // Both the tutorial and cooperation hints use ShowVisualHint. Correct a stale
+    // "return to the left plate" instruction after the team reaches the bridge exit.
+    // Do not rewrite ordinary left-movement instructions before bridge progress.
+    List<HintSpot> CorrectBridgeBacktrack(List<HintSpot> targets)
+    {
+        if(targets==null || targets.Count==0)return targets;
+        bool hasLeft=false;
+        foreach(var target in targets)
+            if(target.Button=="Btn_Left"){hasLeft=true;break;}
+        if(!hasLeft)return targets;
+
+        var actors=FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+        var bridges=FindObjectsByType<BridgeController>(FindObjectsSortMode.None);
+        var plates=FindObjectsByType<PressurePlate>(FindObjectsSortMode.None);
+        foreach(var bridge in bridges)
+        {
+            if(!bridge || !bridge.Surface)continue;
+            var bounds=bridge.Surface.bounds;
+            PlayerController crossing=null;
+            bool teammateAhead=false;
+            foreach(var actor in actors)
+            {
+                if(!actor || !actor.BodyCollider || actor.IsRecovering)continue;
+                var body=actor.BodyCollider.bounds;
+                // We are genuinely near the right half of this bridge (not just
+                // close to a plate on another part of the level).
+                if(body.center.x>=bounds.center.x && body.min.x<=bounds.max.x+.35f &&
+                   body.min.y>=bounds.max.y-.9f && body.min.y<=bounds.max.y+1.5f)
+                {
+                    foreach(var target in targets)
+                        if(target.Player==actor.PlayerId && target.Button=="Btn_Left")
+                            crossing=actor;
+                }
+            }
+            if(!crossing)continue;
+            foreach(var actor in actors)
+                if(actor && actor!=crossing && actor.BodyCollider &&
+                   actor.BodyCollider.bounds.center.x>=bounds.center.x)
+                    teammateAhead=true;
+            if(!teammateAhead)continue;
+
+            // Only override hints which actually spotlight an earlier pressure
+            // plate. Genuine requests to walk left elsewhere remain unchanged.
+            bool pointingToOldPlate=false;
+            foreach(var spot in targets)
+            {
+                if(!string.IsNullOrEmpty(spot.Button) || spot.ControlRect)continue;
+                Vector3 world=spot.WorldTarget ? spot.WorldTarget.position : spot.Position;
+                foreach(var plate in plates)
+                    if(plate && plate.transform.position.x < bounds.center.x &&
+                       Vector2.Distance(world,plate.transform.position)<.8f)
+                        pointingToOldPlate=true;
+            }
+            if(!pointingToOldPlate)continue;
+
+            // Drop the old plate spotlight entirely. The remaining cooperative
+            // action for the crossing child is to move right toward the goal.
+            var corrected=new List<HintSpot>{HintSpot.Control(crossing.PlayerId,"Btn_Right")};
+            return corrected;
+        }
+        return targets;
+    }
+
+    // Refresh already-visible instructions as players progress, even if the
+    // tutorial does not request a new hint after they move.
+    bool RefreshStaleBridgeHint()
+    {
+        if(spots.Count==0)return false;
+        var before=new List<HintSpot>(spots);
+        var corrected=CorrectBridgeBacktrack(before);
+        if(object.ReferenceEquals(before,corrected))return false;
+        ShowVisualHint(corrected,5f,"bridge_forward_after_progress");
+        return true;
+    }
+
     public void ShowVisualHint(List<HintSpot> targets,float repeatAfterSeconds=5f,string contextKey=null)
     {
+        targets=CorrectBridgeBacktrack(targets);
         // Avoid a lingering dark overlay after the last tutorial objective disappears.
         if(targets==null || targets.Count==0){HideHint();return;}
         bool preserve=contextKey!=null&&contextKey==guidanceContext;

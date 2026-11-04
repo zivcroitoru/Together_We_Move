@@ -6,10 +6,11 @@ using UnityEngine.UI;
 public sealed class GameplayFeedback : MonoBehaviour
 {
     [SerializeField] private AudioClip cheerfulSound;
-    [SerializeField, Range(0f,.5f)] private float volume = .18f;
-    [SerializeField, Min(.15f)] private float minimumInterval = .65f;
+    [SerializeField, Range(0f,.5f)] private float volume = .10f;
+    [SerializeField, Min(.15f)] private float minimumInterval = 5f;
+    [SerializeField, Range(1,24)] private int cooperationPieces = 7;
+    [SerializeField, Range(1,24)] private int finishPieces = 14;
     private readonly HashSet<string> seen = new();
-    private readonly Queue<Vector3> pending = new();
     private readonly List<Piece> pieces = new();
     private PlayerController[] players;
     private AudioSource source;
@@ -46,43 +47,57 @@ public sealed class GameplayFeedback : MonoBehaviour
     }
     public void Milestone(string type,int playerId,string target)
     {
-        if (type != "assisted_crossing" && type != "goal_reached" && type != "player_participated") return;
+        // Normal walking/participation is not a celebration. Confetti is
+        // reserved for a genuine cooperative bridge crossing.
+        if (type != "assisted_crossing" && type != "goal_reached") return;
         if (!seen.Add(type+":"+playerId+":"+target)) return;
-        Celebrate(playerId);
+        if (type == "assisted_crossing") Celebrate(playerId);
+        else AnimatePlayer(playerId);
     }
     public void Discovery(string target,int playerId)
     {
         if (!seen.Add("discovery:"+target+":"+playerId)) return;
-        Celebrate(playerId);
+        // Pressure plates and levers get a gentle character response, NOT confetti.
+        AnimatePlayer(playerId);
     }
     public void Finish()
     {
         if (!seen.Add("level_finished")) return;
         // Every finish has the same happy treatment, independent of the score.
         foreach (var player in players) if (player) player.GetComponentInChildren<PlayerView>()?.Celebrate();
-        pending.Clear(); nextBurst = 0;
-        QueueBurst(players.Length > 0 && players[0] ? players[0].transform.position : Vector3.zero);
+        nextBurst = Time.unscaledTime + minimumInterval;
+        Burst(players != null && players.Length > 0 && players[0] ? players[0].transform.position : Vector3.zero,finishPieces);
+    }
+    private void AnimatePlayer(int playerId)
+    {
+        if (players == null) return;
+        foreach (var player in players)
+            if (player && player.PlayerId == playerId && !player.IsRecovering)
+                player.GetComponentInChildren<PlayerView>()?.Celebrate();
     }
     private void Celebrate(int playerId)
     {
         if (players == null) return;
-        foreach (var player in players) if (player && (playerId == 0 || player.PlayerId == playerId))
-        { if (!player.IsRecovering) player.GetComponentInChildren<PlayerView>()?.Celebrate(); QueueBurst(player.transform.position); }
+        foreach (var player in players)
+            if (player && player.PlayerId == playerId && !player.IsRecovering)
+            {
+                player.GetComponentInChildren<PlayerView>()?.Celebrate();
+                if (Time.unscaledTime >= nextBurst)
+                {
+                    nextBurst = Time.unscaledTime + minimumInterval;
+                    Burst(player.transform.position,cooperationPieces);
+                }
+            }
     }
-    private void QueueBurst(Vector3 position)
+    private void Burst(Vector3 position,int count)
     {
         if (!canvas) return;
-        if (Time.unscaledTime >= nextBurst) Burst(position);
-        else if (pending.Count < 2) pending.Enqueue(position);
-    }
-    private void Burst(Vector3 position)
-    {
-        nextBurst = Time.unscaledTime + minimumInterval; BurstsPlayed++;
+        BurstsPlayed++;
         if (source) source.PlayOneShot(cheerfulSound ? cheerfulSound : generatedSound,volume);
         var camera = Camera.main; Vector3 viewport = camera ? camera.WorldToViewportPoint(position + Vector3.up*.5f) : new Vector3(.5f,.5f);
         var root = canvas.GetComponent<RectTransform>(); Vector2 origin = new Vector2((Mathf.Clamp(viewport.x,.08f,.92f)-.5f)*root.rect.width,(Mathf.Clamp(viewport.y,.15f,.9f)-.5f)*root.rect.height);
         int emitted = 0;
-        for (int i=0;i<pieces.Count && emitted<18;i++)
+        for (int i=0;i<pieces.Count && emitted<count;i++)
         {
             var piece = pieces[i]; if (piece.Age < .65f) continue;
             piece.Age = 0; piece.Rect.anchoredPosition = origin;
@@ -92,7 +107,6 @@ public sealed class GameplayFeedback : MonoBehaviour
     }
     private void Update()
     {
-        if (pending.Count > 0 && Time.unscaledTime >= nextBurst) Burst(pending.Dequeue());
         for (int i=0;i<pieces.Count;i++)
         {
             var piece = pieces[i]; if (piece.Age >= .65f) continue;
