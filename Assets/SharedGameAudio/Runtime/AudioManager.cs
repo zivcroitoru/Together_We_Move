@@ -68,14 +68,21 @@ namespace SharedGameAudio
             int active=0,free=-1;
             for(int i=0;i<voices.Length;i++){if(voices[i].isPlaying){if(voiceIds[i]==id)active++;}else if(free<0)free=i;}
             // Drop rather than interrupt a child feedback cue when the fixed pool is full.
-            if(active>=entry.maxVoices||free<0)return false;
+            if(active>=entry.maxVoices)return false;
+            if(free<0)
+            {
+                int leastImportant=entry.priority;
+                for(int i=0;i<voices.Length;i++)if(voices[i].priority>leastImportant){leastImportant=voices[i].priority;free=i;}
+                if(free<0)return false;
+                voices[free].Stop();
+            }
             var clip=entry.clips[UnityEngine.Random.Range(0,entry.clips.Length)];if(!clip)return false;
             var voice=voices[free];voiceIds[free]=id;voice.clip=clip;voice.pitch=1+UnityEngine.Random.Range(-entry.pitchVariation,entry.pitchVariation);
             voice.priority=entry.priority;voice.volume=entry.volume*(sfxGroup?1:SfxVolume);voice.Play();played[(int)id]++;
             nextAllowed[index]=Time.unscaledTime+entry.cooldown;return true;
         }
         public static void PlaySound(SoundId id,int emitter=0){if(Instance)Instance.Play(id,emitter);}
-        public void PlayMusic(AudioClip clip,float fadeSeconds=-1)
+        public void PlayMusic(AudioClip clip,float fadeSeconds=-1,bool loop=true)
         {
             if(clip && CurrentMusic==clip)return;
             for(int i=0;i<2;i++)starts[i]=weights[i];
@@ -84,7 +91,7 @@ namespace SharedGameAudio
             {
                 // Reuse an already playing destination on rapid scene changes.
                 int next=music[0].clip==clip&&music[0].isPlaying?0:music[1].clip==clip&&music[1].isPlaying?1:weights[0]<=weights[1]?0:1;
-                if(music[next].clip!=clip||!music[next].isPlaying){music[next].Stop();music[next].clip=clip;music[next].loop=true;music[next].Play();weights[next]=starts[next]=0;}
+                if(music[next].clip!=clip||!music[next].isPlaying){music[next].Stop();music[next].clip=clip;music[next].loop=loop;music[next].Play();weights[next]=starts[next]=0;}
                 target=next;
             }
             fadeElapsed=0;fadeDuration=fadeSeconds<0?crossfadeSeconds:Mathf.Max(.01f,fadeSeconds);

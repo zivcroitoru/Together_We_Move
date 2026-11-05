@@ -64,7 +64,7 @@ public sealed class TWMGameAudio : MonoBehaviour
         for(int i=0;i<switches.Length;i++)if(switches[i]&&flipped[i]!=switches[i].IsFlipped){flipped[i]=switches[i].IsFlipped;AudioManager.PlaySound(SoundId.Switch);}
         for(int i=0;i<bridges.Length;i++)if(bridges[i]&&bridges[i].Surface&&open[i]!=bridges[i].Surface.enabled){open[i]=bridges[i].Surface.enabled;AudioManager.PlaySound(open[i]?SoundId.BridgeOn:SoundId.BridgeOff);}
         if(manager&&manager.LevelCompleted&&!finished)
-        {finished=true;AudioManager.Instance?.PlayMusic(null,.35f);AudioManager.PlaySound(SoundId.Victory);}
+        {finished=true;var audio=AudioManager.Instance;var victory=audio&&audio.library?audio.library.Get(SoundId.Victory):null;if(victory!=null&&victory.clips.Length>0)audio.PlayMusic(victory.clips[0],.25f,false);}
         if(ui&&ui.ResultsVisible&&!results)
         {results=true;foreach(var progress in FindObjectsByType<UIProgress>(FindObjectsSortMode.None))if(progress.indicators.Length>0){score=progress;break;}StartCoroutine(Stars());}
         if(results&&score){int bucket=Mathf.FloorToInt(score.value*10);if(bucket>scoreBucket){scoreBucket=bucket;AudioManager.PlaySound(SoundId.Score);}}

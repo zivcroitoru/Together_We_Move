@@ -43,7 +43,7 @@ namespace SharedGameAudio
             var rect=new GameObject(name,typeof(RectTransform)).GetComponent<RectTransform>();rect.SetParent(parent,false);
             rect.anchorMin=min;rect.anchorMax=max;rect.offsetMin=rect.offsetMax=Vector2.zero;return rect;
         }
-        static Image Image(RectTransform rect,Color color,bool hit=false){var image=rect.gameObject.AddComponent<Image>();image.color=color;image.raycastTarget=hit;return image;}
+        static Image Image(RectTransform rect,Color color,bool hit=false){var image=rect.gameObject.AddComponent<Image>();image.color=color;image.sprite=Resources.Load<Sprite>("SharedGameAudio/Panel");image.type=UnityEngine.UI.Image.Type.Sliced;image.raycastTarget=hit;return image;}
         static Text Label(string value,Transform parent,Vector2 min,Vector2 max,int size=32)
         {
             var text=Rect(value,parent,min,max).gameObject.AddComponent<Text>();text.text=value;text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -76,7 +76,7 @@ namespace SharedGameAudio
             var canvas=root.GetComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=250;
             var scaler=root.GetComponent<CanvasScaler>();scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scaler.referenceResolution=new Vector2(2048,1536);scaler.matchWidthOrHeight=.5f;
             var ui=root.GetComponent<AudioSettingsUI>();var safe=Rect("Safe area",root.transform,Vector2.zero,Vector2.one);
-            ui.openButton=Button("Audio",safe,new Vector2(.46f,.90f),new Vector2(.54f,.98f));
+            ui.openButton=Button("Audio",safe,new Vector2(.72f,.90f),new Vector2(.81f,.98f));
             var overlay=Rect("Audio panel",safe,Vector2.zero,Vector2.one);Image(overlay,new Color(.03f,.09f,.12f,.6f),true);ui.panel=overlay.gameObject;
             var card=Rect("Card",overlay,new Vector2(.24f,.27f),new Vector2(.76f,.73f));Image(card,Cream,true);
             Label("Audio",card,new Vector2(.1f,.82f),new Vector2(.9f,.97f),42);

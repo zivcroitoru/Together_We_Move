@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f40c5a036c0c3344ca930560fa04eba1, type: 3}
+  m_Name: SoundLibrary
+  m_EditorClassIdentifier: SharedGameAudio.Runtime::SharedGameAudio.SoundLibrary
+  sounds:
+  - id: 0
+    clips:
+    - {fileID: 8300000, guid: 7cf04b3076073a743a4de173967a35e6, type: 3}
+    - {fileID: 8300000, guid: 741d92e8a86646c4097ba50625fa175e, type: 3}
+    volume: 0.22
+    pitchVariation: 0.035
+    cooldown: 0.16
+    maxVoices: 2
+    priority: 128
+  - id: 1
+    clips:
+    - {fileID: 8300000, guid: fcb477519c2b6f246bfd4a06fa460de3, type: 3}
+    volume: 0.2
+    pitchVariation: 0.035
+    cooldown: 0.18
+    maxVoices: 2
+    priority: 128
+  - id: 2
+    clips:
+    - {fileID: 8300000, guid: e1d513213b93044498967c51fea2d1ef, type: 3}
+    - {fileID: 8300000, guid: de45378120a17f441b337579b000c8fc, type: 3}
+    volume: 0.13
+    pitchVariation: 0.035
+    cooldown: 0.32
+    maxVoices: 2
+    priority: 128
+  - id: 3
+    clips:
+    - {fileID: 8300000, guid: 4a5c624edb07f634db6b5fbaef8e3cf3, type: 3}
+    volume: 0.19
+    pitchVariation: 0.035
+    cooldown: 0.32
+    maxVoices: 2
+    priority: 128
+  - id: 4
+    clips:
+    - {fileID: 8300000, guid: be46ec9e901b06b429932b8a477a3c5a, type: 3}
+    volume: 0.32
+    pitchVariation: 0.035
+    cooldown: 0.12
+    maxVoices: 2
+    priority: 128
+  - id: 5
+    clips:
+    - {fileID: 8300000, guid: a07aeb45600b8d24e8aa4bfcbaa9cbf6, type: 3}
+    volume: 0.24
+    pitchVariation: 0.035
+    cooldown: 0.18
+    maxVoices: 2
+    priority: 128
+  - id: 6
+    clips:
+    - {fileID: 8300000, guid: be46ec9e901b06b429932b8a477a3c5a, type: 3}
+    volume: 0.38
+    pitchVariation: 0.035
+    cooldown: 0.2
+    maxVoices: 2
+    priority: 128
+  - id: 7
+    clips:
+    - {fileID: 8300000, guid: fb5cd79a448d3bc4f8d4fda65a4b031e, type: 3}
+    volume: 0.27
+    pitchVariation: 0.035
+    cooldown: 0.35
+    maxVoices: 2
+    priority: 128
+  - id: 8
+    clips:
+    - {fileID: 8300000, guid: 7a53b339581bd0e4cbb3c635238e5122, type: 3}
+    volume: 0.2
+    pitchVariation: 0.035
+    cooldown: 0.35
+    maxVoices: 2
+    priority: 128
+  - id: 9
+    clips:
+    - {fileID: 8300000, guid: 9a1cf943156467742b2339bd367bfcc0, type: 3}
+    volume: 0.32
+    pitchVariation: 0
+    cooldown: 2
+    maxVoices: 1
+    priority: 48
+  - id: 10
+    clips:
+    - {fileID: 8300000, guid: 238194bca7ab82a43ab5ce249de234e7, type: 3}
+    volume: 0.35
+    pitchVariation: 0.02
+    cooldown: 0.16
+    maxVoices: 2
+    priority: 48
+  - id: 11
+    clips:
+    - {fileID: 8300000, guid: b8efb8a03f2959a4aa057ca5935fd113, type: 3}
+    volume: 0.28
+    pitchVariation: 0.035
+    cooldown: 0.3
+    maxVoices: 2
+    priority: 128
+  - id: 12
+    clips:
+    - {fileID: 8300000, guid: adad977f22e78f94c825229bfb33393b, type: 3}
+    volume: 0.22
+    pitchVariation: 0.015
+    cooldown: 2
+    maxVoices: 1
+    priority: 128
+  - id: 13
+    clips:
+    - {fileID: 8300000, guid: 4f1e9c414ac79b54c82007202b3131cd, type: 3}
+    volume: 0.28
+    pitchVariation: 0.035
+    cooldown: 0.4
+    maxVoices: 2
+    priority: 128
+  - id: 14
+    clips:
+    - {fileID: 8300000, guid: 575acae549e611c49b3318d5ac783fda, type: 3}
+    volume: 0.23
+    pitchVariation: 0.035
+    cooldown: 0.08
+    maxVoices: 2
+    priority: 128
+  - id: 15
+    clips:
+    - {fileID: 8300000, guid: c6290a5f0ba562d4aa455d966f0d3216, type: 3}
+    volume: 0.14
+    pitchVariation: 0.035
+    cooldown: 0.15
+    maxVoices: 2
+    priority: 128
+  - id: 16
+    clips:
+    - {fileID: 8300000, guid: b8efb8a03f2959a4aa057ca5935fd113, type: 3}
+    volume: 0.26
+    pitchVariation: 0.035
+    cooldown: 0.18
+    maxVoices: 2
+    priority: 128
+  - id: 17
+    clips:
+    - {fileID: 8300000, guid: fb5cd79a448d3bc4f8d4fda65a4b031e, type: 3}
+    volume: 0.15
+    pitchVariation: 0.035
+    cooldown: 1
+    maxVoices: 1
+    priority: 128
+  - id: 18
+    clips:
+    - {fileID: 8300000, guid: 077df80074f7c3f4f8264cfec170512d, type: 3}
+    volume: 0.48
+    pitchVariation: 0
+    cooldown: 3
+    maxVoices: 1
+    priority: 24
+  menuMusic: {fileID: 8300000, guid: 846187ccac4fdaa45b1dd3afa4b1dbb7, type: 3}
+  levelOneMusic: {fileID: 8300000, guid: 77bbef2614a7a394385a6b14b916196f, type: 3}
+  levelTwoMusic: {fileID: 8300000, guid: 1d9d3c402ce72ea4d951d6397c2934b8, type: 3}

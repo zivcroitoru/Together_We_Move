@@ -5,7 +5,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "19ca0d5b1cbaa78ed92d2e658e7b9abc3b866e22b434212e9f61350c56593116"
+    "sha256": "5d3fd9c9778372a4f3f49ce8bee1e400633c359b19d42c3f3d1e1915391f2cb7",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/switch_002.wav",
@@ -13,7 +14,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "78b861d688ae3ab33d1515df07a7a48eec633f05c14c6e37f9fe3a702169624e"
+    "sha256": "d68350ae2a48f26dd5bfa368af8fa8e42912b5f4cbc7622b8688cbff347b3dbd",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/toggle_001.wav",
@@ -21,7 +23,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "51626a3a548f619fff55d57e57cc7cbcdbd1eca6b685cbd2b80d420fb656753a"
+    "sha256": "ea34d29d2b81132f83632d69a8cf5afa75b50909fbd9b1230e2d6f7aa56aa6fe",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/confirmation_001.wav",
@@ -29,7 +32,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "8f4485fa662352654907e40e7c288213c6bdc3668cc88da3eb87ad52255ce2ab"
+    "sha256": "ee1ed68e16c69b745c18da2cb1a9829fe9071f4eaa2dd74e1713b80cf19535c3",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/question_001.wav",
@@ -37,7 +41,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "35e789be46c59f8de5e9df7a5aaee4579efc4f6aedfd8abe029c6bbbc5394e35"
+    "sha256": "2f49656d0665134580c2a4301ec1b3aa981995f278a3bb437194d4ef92c18252",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/pluck_001.wav",
@@ -45,7 +50,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "5fee4b51a15743dd2db8283237a9799743e4baee9d706a0be66f9fdd040a0438"
+    "sha256": "879b22d19dcd154bed38e0445e652bf966dee84a600562def0db2fbb6ce8f587",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/maximize_003.wav",
@@ -53,7 +59,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "4312b061e56f0219e4f5e73119e0f5447ea4ba8aa79deffce461aee6a4a0078d"
+    "sha256": "9c60afc157b86269c6da210097c9b2e814f9a5f6a14f4964ccb9ee207099f717",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/minimize_003.wav",
@@ -61,7 +68,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "87f22b4859e8c4ac10d271cbb627183520c4a202c2b0265e598edae9a8d4ebdb"
+    "sha256": "46b6f93bc7fc48cb26cd4e5e5b5647cd1845d1637d80d29e8a6ccf8e7cbaa6ba",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/tick_001.wav",
@@ -69,7 +77,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "e19147de8643dad79cfeeb1e1874d8a461897d14eaffc30df5059b415aa11bd3"
+    "sha256": "2070a434102d18ca56b6972f4436e264c580351224eafb3d18974fd3ff2c9ba9",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/drop_001.wav",
@@ -77,7 +86,8 @@
     "source": "https://kenney.nl/assets/interface-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "d3849bb292975af902412e5fd97a9199758e55f81b7edb4b9cdd4d4e1fd45b03"
+    "sha256": "053db6a99f0b0ae690502639acf64b97b40ef5890b88c9c41e9d5db5612d81e7",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/footstep_carpet_000.wav",
@@ -85,7 +95,8 @@
     "source": "https://kenney.nl/assets/impact-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "61c456cee16be80c0eba8202cb71c7436eedc037d77c6f4a95f5f6cce2e96098"
+    "sha256": "d5064d4fb8ba30b3197f79097160ffb8d76f1f307723e6591352dfaf9d55c0e5",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/footstep_carpet_001.wav",
@@ -93,7 +104,8 @@
     "source": "https://kenney.nl/assets/impact-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "71d229c5f6e55186ea5dd4b147affe63e64149c129af72a50aa3cd7b4644680d"
+    "sha256": "96df5ef7a05a9fcfd0b7c5953133ccdae17b35e92c3bf83275e02a4c293b5f77",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/impactSoft_medium_000.wav",
@@ -101,7 +113,8 @@
     "source": "https://kenney.nl/assets/impact-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "345d69c37dcb1621b2a04c4fb3a1f861f414623b9d4aa7a96c1cb5428dada016"
+    "sha256": "9232fbcbb4ac7da92e14eef7b24731fcfa7d86d5c3f02e23089b7de862358b1c",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/impactWood_light_000.wav",
@@ -109,7 +122,8 @@
     "source": "https://kenney.nl/assets/impact-sounds",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "4906f2c9903c8ad0bd1e97b83cc97e23dc78a9bb9e458244389af9e4918c3d95"
+    "sha256": "89f539263d9eda085376236b05bdb50518720e8485ecee15e747f147258c64c3",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/phaseJump1.wav",
@@ -117,7 +131,8 @@
     "source": "https://kenney.nl/assets/digital-audio",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "7cf35dd4f9a365462c0b9a406e7cd6adc8bc7e14c3c7a77669b0cc4a8c461340"
+    "sha256": "f5bad9f7217aabce22e8e6c65e9f05b46bdcff031a3ab4d284fb8bdc3f288a4f",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/phaseJump2.wav",
@@ -125,7 +140,8 @@
     "source": "https://kenney.nl/assets/digital-audio",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "f7a901ed15677cf47f9936fab75377d57db104090de3064c16ebc2c3e3113b14"
+    "sha256": "7deab9f21a3e4ae83858a49b23582d95bb155394a4d26f6e7245d13f67cf19a5",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/jingles_PIZZI07.wav",
@@ -133,7 +149,8 @@
     "source": "https://kenney.nl/assets/music-jingles",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "1444092fcf135527dd643fe07854ad33e4d13532775a368600c6b42258da85b8"
+    "sha256": "cba95a81ec0352169bdff6ae8165357603529e0ccdf2b81f846ef925872c0862",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/SFX/jingles_PIZZI10.wav",
@@ -141,7 +158,8 @@
     "source": "https://kenney.nl/assets/music-jingles",
     "author": "Kenney",
     "license": "CC0-1.0",
-    "sha256": "57892a6af18b38e4ce9087edd53254dda67f31944a3a8da2fc09be71a3bdb1ac"
+    "sha256": "7bf81d7a35caf17bca45b0027dbfc8bf1dd4adb0dc26ec97705b420456a0e753",
+    "processing": "Mono 32 kHz PCM, peak ceiling -2.5 dBFS"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/Music/Menu.ogg",
@@ -150,7 +168,8 @@
     "title": "Where was I?",
     "author": "yd",
     "license": "CC0-1.0",
-    "sha256": "cb52cc2226123233303bb7ea5f49857d818b8d70cddfb76331bf48ca2c39374e"
+    "sha256": "8af81dba89de6aa7c74bcc2065ce667caca872b52b60fee026ea15ea048c5c33",
+    "processing": "Music mastered to -24 LUFS target, -6 dBTP; 32 kHz Vorbis"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/Music/Level1.ogg",
@@ -159,7 +178,8 @@
     "title": "Happy Beat",
     "author": "burabotti",
     "license": "CC0-1.0",
-    "sha256": "7be39701ccbe9faa9d69952bd6dd6a6412bcdf3212dea33085ac8cc6dcd35804"
+    "sha256": "14d94ef0b75e0f551b1597d06c20606125704d3ccd286e2af550a444f32d05e0",
+    "processing": "Music mastered to -24 LUFS target, -6 dBTP; 32 kHz Vorbis"
   },
   {
     "file": "Assets/SharedGameAudio/Audio/Music/Level2.ogg",
@@ -168,6 +188,7 @@
     "title": "Party and Gameover loop (happy theme)",
     "author": "gilzoide",
     "license": "CC0-1.0",
-    "sha256": "499bb210f1bf472ba74c8b8fcf57c9465075fd716309eb8e1edabd4637bf9260"
+    "sha256": "62feb5d7b51ad8cd2c28ae59427efbd79441dfd5bbe1a717cc50178d5335c155",
+    "processing": "Music mastered to -24 LUFS target, -6 dBTP; 32 kHz Vorbis"
   }
 ]
