@@ -1,0 +1,1 @@
+{"name": "SharedGameAudio.Editor", "references": ["SharedGameAudio.Runtime", "UnityEngine.UI"], "includePlatforms": ["Editor"], "autoReferenced": true}

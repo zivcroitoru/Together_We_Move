@@ -5,16 +5,12 @@ using UnityEngine.UI;
 /// <summary>Small pooled bursts, shared sound and artwork-only celebrations. Never captures input.</summary>
 public sealed class GameplayFeedback : MonoBehaviour
 {
-    [SerializeField] private AudioClip cheerfulSound;
-    [SerializeField, Range(0f,.5f)] private float volume = .10f;
     [SerializeField, Min(.15f)] private float minimumInterval = 5f;
     [SerializeField, Range(1,24)] private int cooperationPieces = 7;
     [SerializeField, Range(1,24)] private int finishPieces = 14;
     private readonly HashSet<string> seen = new();
     private readonly List<Piece> pieces = new();
     private PlayerController[] players;
-    private AudioSource source;
-    private AudioClip generatedSound;
     private Canvas canvas;
     private float nextBurst;
     private struct Piece { public RectTransform Rect; public Image Image; public Vector2 Velocity; public float Age; }
@@ -23,17 +19,6 @@ public sealed class GameplayFeedback : MonoBehaviour
     public void Initialize(PlayerController[] actors)
     {
         players = actors;
-        source = gameObject.AddComponent<AudioSource>(); source.playOnAwake = false; source.spatialBlend = 0;
-        if (!cheerfulSound)
-        {
-            const int rate = 22050; var samples = new float[(int)(rate * .24f)];
-            for (int i = 0; i < samples.Length; i++)
-            {
-                float t = (float)i/rate, note = t < .12f ? 660f : 880f;
-                samples[i] = Mathf.Sin(2*Mathf.PI*note*t)*Mathf.Sin(Mathf.PI*t/.24f)*.3f;
-            }
-            generatedSound = AudioClip.Create("Together cheerful chime",samples.Length,1,rate,false); generatedSound.SetData(samples,0);
-        }
         var root = new GameObject("Gameplay confetti",typeof(Canvas),typeof(CanvasScaler));
         root.transform.SetParent(transform,false); canvas = root.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 190;
         var scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080,1920); scaler.matchWidthOrHeight = 0;
@@ -93,7 +78,7 @@ public sealed class GameplayFeedback : MonoBehaviour
     {
         if (!canvas) return;
         BurstsPlayed++;
-        if (source) source.PlayOneShot(cheerfulSound ? cheerfulSound : generatedSound,volume);
+        SharedGameAudio.AudioManager.PlaySound(SharedGameAudio.SoundId.Confetti);
         var camera = Camera.main; Vector3 viewport = camera ? camera.WorldToViewportPoint(position + Vector3.up*.5f) : new Vector3(.5f,.5f);
         var root = canvas.GetComponent<RectTransform>(); Vector2 origin = new Vector2((Mathf.Clamp(viewport.x,.08f,.92f)-.5f)*root.rect.width,(Mathf.Clamp(viewport.y,.15f,.9f)-.5f)*root.rect.height);
         int emitted = 0;
@@ -116,5 +101,4 @@ public sealed class GameplayFeedback : MonoBehaviour
             if (piece.Age >= .65f) piece.Rect.gameObject.SetActive(false); pieces[i]=piece;
         }
     }
-    private void OnDestroy() { if (generatedSound) Destroy(generatedSound); }
 }

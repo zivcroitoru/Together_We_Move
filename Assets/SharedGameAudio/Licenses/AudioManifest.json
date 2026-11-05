@@ -1,0 +1,173 @@
+[
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/click_001.wav",
+    "original": "Audio/click_001.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "19ca0d5b1cbaa78ed92d2e658e7b9abc3b866e22b434212e9f61350c56593116"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/switch_002.wav",
+    "original": "Audio/switch_002.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "78b861d688ae3ab33d1515df07a7a48eec633f05c14c6e37f9fe3a702169624e"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/toggle_001.wav",
+    "original": "Audio/toggle_001.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "51626a3a548f619fff55d57e57cc7cbcdbd1eca6b685cbd2b80d420fb656753a"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/confirmation_001.wav",
+    "original": "Audio/confirmation_001.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "8f4485fa662352654907e40e7c288213c6bdc3668cc88da3eb87ad52255ce2ab"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/question_001.wav",
+    "original": "Audio/question_001.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "35e789be46c59f8de5e9df7a5aaee4579efc4f6aedfd8abe029c6bbbc5394e35"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/pluck_001.wav",
+    "original": "Audio/pluck_001.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "5fee4b51a15743dd2db8283237a9799743e4baee9d706a0be66f9fdd040a0438"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/maximize_003.wav",
+    "original": "Audio/maximize_003.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "4312b061e56f0219e4f5e73119e0f5447ea4ba8aa79deffce461aee6a4a0078d"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/minimize_003.wav",
+    "original": "Audio/minimize_003.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "87f22b4859e8c4ac10d271cbb627183520c4a202c2b0265e598edae9a8d4ebdb"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/tick_001.wav",
+    "original": "Audio/tick_001.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "e19147de8643dad79cfeeb1e1874d8a461897d14eaffc30df5059b415aa11bd3"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/drop_001.wav",
+    "original": "Audio/drop_001.ogg",
+    "source": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "d3849bb292975af902412e5fd97a9199758e55f81b7edb4b9cdd4d4e1fd45b03"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/footstep_carpet_000.wav",
+    "original": "Audio/footstep_carpet_000.ogg",
+    "source": "https://kenney.nl/assets/impact-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "61c456cee16be80c0eba8202cb71c7436eedc037d77c6f4a95f5f6cce2e96098"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/footstep_carpet_001.wav",
+    "original": "Audio/footstep_carpet_001.ogg",
+    "source": "https://kenney.nl/assets/impact-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "71d229c5f6e55186ea5dd4b147affe63e64149c129af72a50aa3cd7b4644680d"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/impactSoft_medium_000.wav",
+    "original": "Audio/impactSoft_medium_000.ogg",
+    "source": "https://kenney.nl/assets/impact-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "345d69c37dcb1621b2a04c4fb3a1f861f414623b9d4aa7a96c1cb5428dada016"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/impactWood_light_000.wav",
+    "original": "Audio/impactWood_light_000.ogg",
+    "source": "https://kenney.nl/assets/impact-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "4906f2c9903c8ad0bd1e97b83cc97e23dc78a9bb9e458244389af9e4918c3d95"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/phaseJump1.wav",
+    "original": "Audio/phaseJump1.ogg",
+    "source": "https://kenney.nl/assets/digital-audio",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "7cf35dd4f9a365462c0b9a406e7cd6adc8bc7e14c3c7a77669b0cc4a8c461340"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/phaseJump2.wav",
+    "original": "Audio/phaseJump2.ogg",
+    "source": "https://kenney.nl/assets/digital-audio",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "f7a901ed15677cf47f9936fab75377d57db104090de3064c16ebc2c3e3113b14"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/jingles_PIZZI07.wav",
+    "original": "Audio/Pizzicato jingles/jingles_PIZZI07.ogg",
+    "source": "https://kenney.nl/assets/music-jingles",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "1444092fcf135527dd643fe07854ad33e4d13532775a368600c6b42258da85b8"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/SFX/jingles_PIZZI10.wav",
+    "original": "Audio/Pizzicato jingles/jingles_PIZZI10.ogg",
+    "source": "https://kenney.nl/assets/music-jingles",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "57892a6af18b38e4ce9087edd53254dda67f31944a3a8da2fc09be71a3bdb1ac"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/Music/Menu.ogg",
+    "original": "where.ogg",
+    "source": "https://opengameart.org/content/where-was-i",
+    "title": "Where was I?",
+    "author": "yd",
+    "license": "CC0-1.0",
+    "sha256": "cb52cc2226123233303bb7ea5f49857d818b8d70cddfb76331bf48ca2c39374e"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/Music/Level1.ogg",
+    "original": "beat.ogg",
+    "source": "https://opengameart.org/content/happy-beat",
+    "title": "Happy Beat",
+    "author": "burabotti",
+    "license": "CC0-1.0",
+    "sha256": "7be39701ccbe9faa9d69952bd6dd6a6412bcdf3212dea33085ac8cc6dcd35804"
+  },
+  {
+    "file": "Assets/SharedGameAudio/Audio/Music/Level2.ogg",
+    "original": "happy.ogg",
+    "source": "https://opengameart.org/content/party-and-gameover-loop",
+    "title": "Party and Gameover loop (happy theme)",
+    "author": "gilzoide",
+    "license": "CC0-1.0",
+    "sha256": "499bb210f1bf472ba74c8b8fcf57c9465075fd716309eb8e1edabd4637bf9260"
+  }
+]

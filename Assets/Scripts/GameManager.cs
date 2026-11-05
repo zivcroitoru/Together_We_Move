@@ -214,6 +214,7 @@ public sealed class GameManager : MonoBehaviour
     public void Log(string type, int playerId, string attribution, string detail = "", string outcome = "",
         string tutorialRunId = "", string tutorialAction = "", float tutorialElapsedSeconds = -1f, float tutorialPhaseSeconds = -1f)
     {
+        TWMGameAudio.Notify(type);
         var progress = tracker?.Progress;
         if(type=="tutorial_action_learned")assistance?.Progress("tutorial:"+detail,playerId);
         PlaytestData.Store.Record(attempt, type, playerId, Score, progress?.EarnedUnits ?? 0,

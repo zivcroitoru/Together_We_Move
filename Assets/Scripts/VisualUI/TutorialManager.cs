@@ -29,10 +29,8 @@ public sealed class TutorialManager : MonoBehaviour
     [Tooltip("Each child's highlight disappears on their first button press. The tutorial ends after both have pressed once.")]
     [SerializeField] bool stopAfterFirstButtonPress = true;
     [SerializeField] Step[] steps;
-    [SerializeField] AudioClip positiveSound;
-    [SerializeField,Range(0f,.5f)] float feedbackVolume=.18f;
     [SerializeField,Min(1)] float repeatHandAfterSeconds=5;
-    GameManager manager;PlaytestUI ui;AudioSource audioSource;
+    GameManager manager;PlaytestUI ui;
     float[] travels;int[] jumps;PlayerController[] players;
     readonly HashSet<string> objectiveEvidence=new();
     readonly List<PlaytestUI.HintSpot> targets=new();
@@ -55,7 +53,7 @@ public sealed class TutorialManager : MonoBehaviour
         if(repeatOnEveryVisit)TutorialSession.Reset();
         progress=TutorialSession.Progress;progress.Begin(Time.unscaledTime);TutorialSession.Begin();
         phase=TutorialSession.NextStep;players=FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
-        audioSource=GetComponent<AudioSource>();if(!audioSource)audioSource=gameObject.AddComponent<AudioSource>();audioSource.playOnAwake=false;audioSource.spatialBlend=0;
+
         IsActive=true;ui.DemonstrationRepeated+=OnRepeated;
         Metric("tutorial_started",0,"system","");
         if (stopAfterFirstButtonPress)
@@ -357,7 +355,7 @@ public sealed class TutorialManager : MonoBehaviour
     void OnRepeated(int playerId){if(IsActive)Metric("tutorial_demo_repeated",playerId,"system","inactivity");}
     IEnumerator Feedback(PlayerController player)
     {
-        if(positiveSound)audioSource.PlayOneShot(positiveSound,feedbackVolume);
+        // Tutorial sound follows its real progress event through TWMGameAudio.
         var view=player.GetComponentInChildren<PlayerView>();var visual=view?view.transform:null;var scale=visual?visual.localScale:Vector3.one;
         float elapsed=0;while(elapsed<.25f){elapsed+=Time.unscaledDeltaTime;if(visual)visual.localScale=scale*(1+.1f*Mathf.Sin(Mathf.Clamp01(elapsed/.25f)*Mathf.PI));yield return null;}if(visual)visual.localScale=scale;
     }
