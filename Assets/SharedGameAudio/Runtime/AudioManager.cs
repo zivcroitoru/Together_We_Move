@@ -20,6 +20,7 @@ namespace SharedGameAudio
         public bool SfxMuted {get;private set;}
         public bool Muted => MusicMuted && SfxMuted;
         public event Action SettingsChanged;
+        readonly System.Random random=new System.Random();
         readonly AudioSource[] music=new AudioSource[2];
         AudioSource[] voices;
         SoundId[] voiceIds;
@@ -67,7 +68,7 @@ namespace SharedGameAudio
             if(entry==null||entry.clips==null||entry.clips.Length==0||Time.unscaledTime<nextAllowed[index])return false;
             int active=0,free=-1;
             for(int i=0;i<voices.Length;i++){if(voices[i].isPlaying){if(voiceIds[i]==id)active++;}else if(free<0)free=i;}
-            // Drop rather than interrupt a child feedback cue when the fixed pool is full.
+            // Optional cues drop at capacity; important cues may replace less important voices.
             if(active>=entry.maxVoices)return false;
             if(free<0)
             {
@@ -76,8 +77,8 @@ namespace SharedGameAudio
                 if(free<0)return false;
                 voices[free].Stop();
             }
-            var clip=entry.clips[UnityEngine.Random.Range(0,entry.clips.Length)];if(!clip)return false;
-            var voice=voices[free];voiceIds[free]=id;voice.clip=clip;voice.pitch=1+UnityEngine.Random.Range(-entry.pitchVariation,entry.pitchVariation);
+            var clip=entry.clips[random.Next(entry.clips.Length)];if(!clip)return false;
+            var voice=voices[free];voiceIds[free]=id;voice.clip=clip;voice.pitch=1+((float)random.NextDouble()*2-1)*entry.pitchVariation;
             voice.priority=entry.priority;voice.volume=entry.volume*(sfxGroup?1:SfxVolume);voice.Play();played[(int)id]++;
             nextAllowed[index]=Time.unscaledTime+entry.cooldown;return true;
         }

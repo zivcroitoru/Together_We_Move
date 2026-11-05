@@ -35,7 +35,7 @@ public sealed class TWMGameAudio : MonoBehaviour
         for(int i=0;i<plates.Length;i++)occupied[i]=plates[i].IsOccupied;
         for(int i=0;i<switches.Length;i++)flipped[i]=switches[i].IsFlipped;
         for(int i=0;i<bridges.Length;i++)open[i]=bridges[i].Surface&&bridges[i].Surface.enabled;
-        foreach(var button in FindObjectsByType<Button>(FindObjectsSortMode.None))if(!button.GetComponent<AudioButton>())button.gameObject.AddComponent<AudioButton>();
+        foreach(var button in FindObjectsByType<Button>(FindObjectsInactive.Include,FindObjectsSortMode.None))if(!button.GetComponent<AudioButton>())button.gameObject.AddComponent<AudioButton>();
         foreach(var body in FindObjectsByType<Rigidbody2D>(FindObjectsSortMode.None))
             if(!body.GetComponent<PlayerController>()&&body.bodyType==RigidbodyType2D.Dynamic&&(body.name.ToLowerInvariant().Contains("box")||body.name.ToLowerInvariant().Contains("crate"))&&!body.GetComponent<PushAudio>())body.gameObject.AddComponent<PushAudio>();
         // Instantiate after gameplay selected its own Canvas; this overlay never becomes its canvas.

@@ -39,7 +39,7 @@ namespace SharedGameAudio.Editor
                 settings.sampleRateSetting=AudioSampleRateSetting.OverrideSampleRate;settings.sampleRateOverride=32000;importer.defaultSampleSettings=settings;
                 importer.SetOverrideSampleSettings("iOS",settings);importer.SaveAndReimport();
             }
-            var spriteImporter=(TextureImporter)AssetImporter.GetAtPath(Resource+"Panel.png");spriteImporter.textureType=TextureImporterType.Sprite;spriteImporter.spriteBorder=new Vector4(16,16,16,16);spriteImporter.mipmapEnabled=false;spriteImporter.SaveAndReimport();
+            var spriteImporter=(TextureImporter)AssetImporter.GetAtPath(Resource+"Panel.png");spriteImporter.textureType=TextureImporterType.Sprite;spriteImporter.spriteImportMode=SpriteImportMode.Single;spriteImporter.spriteBorder=new Vector4(16,16,16,16);spriteImporter.mipmapEnabled=false;spriteImporter.SaveAndReimport();
             var library=AssetDatabase.LoadAssetAtPath<SoundLibrary>(Resource+"SoundLibrary.asset");
             if(!library){library=ScriptableObject.CreateInstance<SoundLibrary>();AssetDatabase.CreateAsset(library,Resource+"SoundLibrary.asset");}
             library.menuMusic=Clip("Menu");library.levelOneMusic=Clip("Level1");library.levelTwoMusic=Clip("Level2");
@@ -61,7 +61,7 @@ namespace SharedGameAudio.Editor
                 if(!manager.musicGroup||!manager.sfxGroup)throw new Exception("Missing mixer groups");
                 PrefabUtility.SaveAsPrefabAsset(root,Resource+"AudioManager.prefab");
             }finally{UnityEngine.Object.DestroyImmediate(root);}
-            root=AudioSettingsUI.Create();try{PrefabUtility.SaveAsPrefabAsset(root,Resource+"AudioSettings.prefab");}finally{UnityEngine.Object.DestroyImmediate(root);}
+            root=AudioSettingsUI.Create();try{var panelSprite=AssetDatabase.LoadAssetAtPath<Sprite>(Resource+"Panel.png");if(!panelSprite)throw new Exception("Missing UI sprite");foreach(var image in root.GetComponentsInChildren<UnityEngine.UI.Image>(true))if(image.name!="Audio panel")image.sprite=panelSprite;PrefabUtility.SaveAsPrefabAsset(root,Resource+"AudioSettings.prefab");}finally{UnityEngine.Object.DestroyImmediate(root);}
             AssetDatabase.SaveAssets();
             foreach(var file in new[]{Resource+"AudioManager.prefab",Resource+"AudioSettings.prefab",Resource+"SoundLibrary.asset"})
                 foreach(var dependency in AssetDatabase.GetDependencies(file,true))

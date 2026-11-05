@@ -163,7 +163,7 @@
   },
   {
     "file": "Assets/SharedGameAudio/Audio/Music/Menu.ogg",
-    "original": "where.ogg",
+    "original": "WereWasI_0.ogg",
     "source": "https://opengameart.org/content/where-was-i",
     "title": "Where was I?",
     "author": "yd",
@@ -173,7 +173,7 @@
   },
   {
     "file": "Assets/SharedGameAudio/Audio/Music/Level1.ogg",
-    "original": "beat.ogg",
+    "original": "happybeat.ogg",
     "source": "https://opengameart.org/content/happy-beat",
     "title": "Happy Beat",
     "author": "burabotti",
@@ -183,7 +183,7 @@
   },
   {
     "file": "Assets/SharedGameAudio/Audio/Music/Level2.ogg",
-    "original": "happy.ogg",
+    "original": "happy_theme_0.ogg",
     "source": "https://opengameart.org/content/party-and-gameover-loop",
     "title": "Party and Gameover loop (happy theme)",
     "author": "gilzoide",
