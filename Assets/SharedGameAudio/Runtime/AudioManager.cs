@@ -23,12 +23,14 @@ namespace SharedGameAudio
         readonly AudioSource[] music=new AudioSource[2];
         AudioSource[] voices;
         SoundId[] voiceIds;
-        readonly float[] nextAllowed=new float[Enum.GetValues(typeof(SoundId)).Length];
+        readonly float[] nextAllowed=new float[Enum.GetValues(typeof(SoundId)).Length*3];
         readonly float[] weights=new float[2],starts=new float[2];
         int target=-1;
         float fadeElapsed;
         bool ready,dirty;
         float saveAt;
+        readonly int[] played=new int[Enum.GetValues(typeof(SoundId)).Length];
+        public int PlayedCount(SoundId id)=>played[(int)id];
         public AudioClip CurrentMusic => target>=0?music[target].clip:null;
         public int ActiveVoiceCount {get{int count=0;foreach(var voice in voices)if(voice.isPlaying)count++;return count;}}
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -58,10 +60,10 @@ namespace SharedGameAudio
             return source;
         }
         void Start(){ready=true;ApplyVolumes();}
-        public bool Play(SoundId id)
+        public bool Play(SoundId id,int emitter=0)
         {
             if(SfxMuted||SfxVolume<=0||library==null)return false;
-            var entry=library.Get(id);int index=(int)id;
+            var entry=library.Get(id);int index=(int)id*3+Mathf.Clamp(emitter,0,2);
             if(entry==null||entry.clips==null||entry.clips.Length==0||Time.unscaledTime<nextAllowed[index])return false;
             int active=0,free=-1;
             for(int i=0;i<voices.Length;i++){if(voices[i].isPlaying){if(voiceIds[i]==id)active++;}else if(free<0)free=i;}
@@ -69,10 +71,10 @@ namespace SharedGameAudio
             if(active>=entry.maxVoices||free<0)return false;
             var clip=entry.clips[UnityEngine.Random.Range(0,entry.clips.Length)];if(!clip)return false;
             var voice=voices[free];voiceIds[free]=id;voice.clip=clip;voice.pitch=1+UnityEngine.Random.Range(-entry.pitchVariation,entry.pitchVariation);
-            voice.priority=entry.priority;voice.volume=entry.volume*(sfxGroup?1:SfxVolume);voice.Play();
+            voice.priority=entry.priority;voice.volume=entry.volume*(sfxGroup?1:SfxVolume);voice.Play();played[(int)id]++;
             nextAllowed[index]=Time.unscaledTime+entry.cooldown;return true;
         }
-        public static void PlaySound(SoundId id){if(Instance)Instance.Play(id);}
+        public static void PlaySound(SoundId id,int emitter=0){if(Instance)Instance.Play(id,emitter);}
         public void PlayMusic(AudioClip clip,float fadeSeconds=-1)
         {
             if(clip && CurrentMusic==clip)return;

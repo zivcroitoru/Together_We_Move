@@ -11,6 +11,20 @@ public sealed class PlayerView : MonoBehaviour
     private Coroutine reaction;
     private Vector3 restingPosition;
     private bool hasRestingPosition;
+    private PlayerJumpSquash jumpSquash;
+
+    public void InitializeJumpAnimation(PlayerController player, Rigidbody2D body)
+    {
+        // Never deform the physics root or any hierarchy containing a collider.
+        if (!transform.IsChildOf(player.transform) || transform == player.transform ||
+            GetComponentInChildren<Collider2D>(true) || GetComponentInChildren<Rigidbody2D>(true)) return;
+        jumpSquash = GetComponent<PlayerJumpSquash>();
+        if (!jumpSquash) jumpSquash = gameObject.AddComponent<PlayerJumpSquash>();
+        jumpSquash.Initialize(player, body);
+    }
+
+    public void PlayJumpTakeoff() { if (jumpSquash) jumpSquash.Takeoff(); }
+    public void ResetJumpAnimation() { if (jumpSquash) jumpSquash.ResetPose(); }
 
     public void Celebrate() => React(.35f, .12f, false);
     public void BounceRecovery(float seconds) => React(seconds, .5f, true);

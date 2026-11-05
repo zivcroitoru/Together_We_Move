@@ -53,10 +53,10 @@ public sealed class TWMGameAudio : MonoBehaviour
             var player=players[i];if(!player)continue;bool ground=player.IsGrounded;var pos=player.transform.position;
             if(!player.InputLocked)
             {
-                if(player.SuccessfulJumpCount!=jumps[i])AudioManager.PlaySound(SoundId.Jump);
-                if(ground&&!grounded[i])AudioManager.PlaySound(SoundId.Land);
+                if(player.SuccessfulJumpCount!=jumps[i])AudioManager.PlaySound(SoundId.Jump,player.PlayerId);
+                if(ground&&!grounded[i])AudioManager.PlaySound(SoundId.Land,player.PlayerId);
                 if(ground&&Mathf.Abs(pos.x-positions[i].x)>.002f&&Time.unscaledTime>=nextStep[i])
-                {AudioManager.PlaySound(SoundId.Move);nextStep[i]=Time.unscaledTime+.42f;}
+                {AudioManager.PlaySound(SoundId.Move,player.PlayerId);nextStep[i]=Time.unscaledTime+.42f;}
             }
             jumps[i]=player.SuccessfulJumpCount;grounded[i]=ground;positions[i]=pos;
         }

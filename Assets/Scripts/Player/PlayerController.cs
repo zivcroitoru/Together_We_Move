@@ -60,6 +60,7 @@ public sealed class PlayerController : MonoBehaviour
             rb.simulated = !locked && !recovering;
         }
         if (view) view.SetWalking(false);
+        if (view) view.ResetJumpAnimation();
     }
 
     public void ClearTouchInput()
@@ -87,6 +88,7 @@ public sealed class PlayerController : MonoBehaviour
             previousPhysicsX = rb.position.x;
         }
         if (view) view.SetWalking(false);
+        if (view) view.ResetJumpAnimation();
     }
 
     private void Awake()
@@ -94,6 +96,7 @@ public sealed class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
         if (!view) view = GetComponentInChildren<PlayerView>();
+        if (view) view.InitializeJumpAnimation(this, rb);
 
         // Remove the old Player 1 horizontal lock, including one saved in the Inspector.
         rb.constraints &= ~RigidbodyConstraints2D.FreezePositionX;
@@ -171,6 +174,7 @@ public sealed class PlayerController : MonoBehaviour
         // Prevent ground-contact lag from producing a short diagonal takeoff.
         jumpMoveLockUntil = Time.time + .10f;
         SuccessfulJumpCount++;
+        if (view) view.PlayJumpTakeoff();
     }
 
     private void OnApplicationFocus(bool focused) { if (!focused) ClearTouchInput(); }
