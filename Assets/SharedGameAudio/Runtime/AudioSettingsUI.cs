@@ -77,6 +77,9 @@ namespace SharedGameAudio
             var scaler=root.GetComponent<CanvasScaler>();scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scaler.referenceResolution=new Vector2(2048,1536);scaler.matchWidthOrHeight=.5f;
             var ui=root.GetComponent<AudioSettingsUI>();var safe=Rect("Safe area",root.transform,Vector2.zero,Vector2.one);
             ui.openButton=Button("Audio",safe,new Vector2(.72f,.90f),new Vector2(.81f,.98f));
+            var openLabel=ui.openButton.GetComponentInChildren<Text>();DestroyImmediate(openLabel.gameObject);
+            var icon=Rect("Speaker icon",ui.openButton.transform,new Vector2(.2f,.2f),new Vector2(.8f,.8f)).gameObject.AddComponent<Image>();
+            icon.sprite=Resources.Load<Sprite>("SharedGameAudio/Speaker");icon.preserveAspect=true;icon.raycastTarget=false;
             var overlay=Rect("Audio panel",safe,Vector2.zero,Vector2.one);Image(overlay,new Color(.03f,.09f,.12f,.6f),true);ui.panel=overlay.gameObject;
             var card=Rect("Card",overlay,new Vector2(.24f,.27f),new Vector2(.76f,.73f));Image(card,Cream,true);
             Label("Audio",card,new Vector2(.1f,.82f),new Vector2(.9f,.97f),42);

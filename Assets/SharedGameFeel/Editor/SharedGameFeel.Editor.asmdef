@@ -1,0 +1,1 @@
+{"name":"SharedGameFeel.Editor","rootNamespace":"SharedGameFeel.Editor","references":["SharedGameFeel.Runtime","SharedGameAudio.Runtime","SharedGameJuice.Runtime"],"includePlatforms":["Editor"],"autoReferenced":true}

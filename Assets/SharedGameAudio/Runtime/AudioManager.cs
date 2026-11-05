@@ -13,7 +13,16 @@ namespace SharedGameAudio
         public AudioMixerGroup musicGroup,sfxGroup;
         [Range(4,24)] public int poolSize=12;
         [Min(.05f)] public float crossfadeSeconds=.8f;
-        const string Prefix="SharedGameAudio.v1.";
+        const string DefaultPrefix="SharedGameAudio.v1.";
+        static string preferencePrefix=DefaultPrefix;
+        string Prefix=>preferencePrefix;
+        public string PreferencePrefix=>preferencePrefix;
+        // Configure before bootstrap (BeforeSplashScreen); retains existing projects' default keys.
+        public static void ConfigurePreferences(string prefix)
+        {
+            if(Instance)throw new InvalidOperationException("Configure audio preferences before AudioManager starts.");
+            preferencePrefix=string.IsNullOrWhiteSpace(prefix)?DefaultPrefix:prefix;
+        }
         public float MusicVolume {get;private set;}
         public float SfxVolume {get;private set;}
         public bool MusicMuted {get;private set;}
@@ -35,7 +44,7 @@ namespace SharedGameAudio
         public AudioClip CurrentMusic => target>=0?music[target].clip:null;
         public int ActiveVoiceCount {get{int count=0;foreach(var voice in voices)if(voice.isPlaying)count++;return count;}}
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics(){Instance=null;}
+        static void ResetStatics(){Instance=null;preferencePrefix=DefaultPrefix;}
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Bootstrap()
         {

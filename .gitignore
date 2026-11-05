@@ -108,3 +108,6 @@ InitTestScene*.unity*
 
 # Editor-only Hebrew renderer experiment environment
 /Tools/HebrewImages/.venv/
+
+# Portable game-feel deliverable
+!/Exports/SharedGameFeel.unitypackage

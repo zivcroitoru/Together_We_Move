@@ -32,6 +32,7 @@ namespace SharedGameJuice
         public void SetProgress(float value)
         {
             Prepare();value=Mathf.Clamp01(value);
+            if (!glow || sparks == null) return; // Unassigned prefab instances are safe to customize.
             if(value>previous+.0001f)glowUntil=Time.unscaledTime+.2f;
             int target=Mathf.CeilToInt(value*3-.001f);
             if(target>earned)
